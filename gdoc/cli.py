@@ -25,27 +25,57 @@ def setup_parser() -> argparse.ArgumentParser:
         description="CLI tool for programmatic Google Docs editing",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+Basic workflow:
+  1. Read the document to get structure and indices
+  2. Find sections or calculate target indices
+  3. Insert, delete, or replace text at specific indices
+  4. Re-read if you need updated indices after edits
+
 Examples:
-  # Read a document (outputs JSON)
-  gdoc-cli read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
-
-  # Insert text at index 100
-  gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New text"
-
-  # Insert text with specific paragraph style
-  gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New heading\n" --style HEADING_2
-
-  # Delete text from index 50 to 60
-  gdoc-cli delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 60
-
-  # Replace text from index 20 to 30
-  gdoc-cli replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 20 30 "Replacement text"
+  # Read a document (always do this first!)
+  gdoc-cli read <doc-id>
+  gdoc-cli read <doc-id> --format text
 
   # Find a section by heading
-  gdoc-cli find 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI "Background"
+  gdoc-cli find <doc-id> "Background"
+
+  # Insert plain text
+  gdoc-cli insert <doc-id> 100 "New paragraph.\\n"
+
+  # Insert with heading style
+  gdoc-cli insert <doc-id> 100 "Section Title\\n" --style HEADING_2
+
+  # Insert bullet list (v0.5.0+)
+  gdoc-cli insert <doc-id> 100 "Item 1\\nItem 2\\nItem 3\\n" --bullet BULLET_DISC_CIRCLE_SQUARE
+
+  # Insert numbered list (v0.5.0+)
+  gdoc-cli insert <doc-id> 100 "Step 1\\nStep 2\\nStep 3\\n" --bullet NUMBERED_DECIMAL_ALPHA_ROMAN
+
+  # Delete text range
+  gdoc-cli delete <doc-id> 50 75
+
+  # Replace text range
+  gdoc-cli replace <doc-id> 20 45 "New text here.\\n"
+
+  # Force edit (bypass revision safety check)
+  gdoc-cli insert <doc-id> 100 "Text\\n" --force
+
+  # Preview changes without executing
+  gdoc-cli insert <doc-id> 100 "Text\\n" --dry-run
 
   # Revoke stored credentials
   gdoc-cli logout
+
+Safety:
+  By default, edits fail if the document was modified since your last read.
+  This prevents accidentally overwriting changes. Use --force to bypass.
+
+Bullet presets:
+  BULLET_DISC_CIRCLE_SQUARE, BULLET_CHECKBOX, NUMBERED_DECIMAL_ALPHA_ROMAN,
+  and 7 others. Use 'gdoc-cli insert --help' for the full list.
+
+More info:
+  Full documentation: https://github.com/defaye/gdoc-editor
         """,
     )
 
@@ -58,24 +88,32 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
     # Read command
-    read_parser = subparsers.add_parser("read", help="Read a Google Doc")
+    read_parser = subparsers.add_parser(
+        "read",
+        help="Read document structure and content",
+        description="Fetch the full document with structure (headings, paragraphs) and character indices"
+    )
     read_parser.add_argument("document_id", help="Google Doc ID or full URL")
     read_parser.add_argument(
         "--format",
         choices=["json", "text"],
         default="json",
-        help="Output format (default: json)",
+        help="Output format: 'json' for structured data (default), 'text' for plain text",
     )
 
     # Insert command
-    insert_parser = subparsers.add_parser("insert", help="Insert text at a specific index")
+    insert_parser = subparsers.add_parser(
+        "insert",
+        help="Insert text at a specific index",
+        description="Insert text at a character index with optional styling and bullet formatting"
+    )
     insert_parser.add_argument("document_id", help="Google Doc ID or full URL")
-    insert_parser.add_argument("index", type=int, help="Index where text should be inserted")
-    insert_parser.add_argument("text", help="Text to insert")
+    insert_parser.add_argument("index", type=int, help="Character index where text should be inserted (0-based)")
+    insert_parser.add_argument("text", help="Text to insert (use \\n for newlines)")
     insert_parser.add_argument(
         "--style",
         choices=["NORMAL_TEXT", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6", "TITLE", "SUBTITLE"],
-        help="Paragraph style (default: NORMAL_TEXT if text ends with newline)"
+        help="Paragraph style (auto-applies NORMAL_TEXT if text ends with \\n)"
     )
     insert_parser.add_argument(
         "--bullet",
@@ -83,41 +121,61 @@ Examples:
                  "BULLET_ARROW_DIAMOND_DISC", "NUMBERED_DECIMAL_ALPHA_ROMAN", "NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS",
                  "NUMBERED_DECIMAL_NESTED", "NUMBERED_UPPERALPHA_ALPHA_ROMAN", "NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL",
                  "NUMBERED_ZERODECIMAL_ALPHA_ROMAN"],
-        help="Bullet list preset (converts paragraph(s) to bulleted list)"
+        help="Apply bullet/numbered list formatting to inserted paragraphs"
     )
-    insert_parser.add_argument("--force", action="store_true", help="Skip revision safety check (allow editing modified documents)")
-    insert_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
+    insert_parser.add_argument("--force", action="store_true", help="Skip revision safety check")
+    insert_parser.add_argument("--dry-run", action="store_true", help="Preview the operation without executing")
 
     # Delete command
-    delete_parser = subparsers.add_parser("delete", help="Delete a range of text")
+    delete_parser = subparsers.add_parser(
+        "delete",
+        help="Delete a range of text",
+        description="Delete text between start and end indices (start inclusive, end exclusive)"
+    )
     delete_parser.add_argument("document_id", help="Google Doc ID or full URL")
-    delete_parser.add_argument("start_index", type=int, help="Start of range (inclusive)")
-    delete_parser.add_argument("end_index", type=int, help="End of range (exclusive)")
-    delete_parser.add_argument("--force", action="store_true", help="Skip revision safety check (allow editing modified documents)")
-    delete_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
+    delete_parser.add_argument("start_index", type=int, help="Start of range to delete (inclusive)")
+    delete_parser.add_argument("end_index", type=int, help="End of range to delete (exclusive)")
+    delete_parser.add_argument("--force", action="store_true", help="Skip revision safety check")
+    delete_parser.add_argument("--dry-run", action="store_true", help="Preview the operation without executing")
 
     # Replace command
-    replace_parser = subparsers.add_parser("replace", help="Replace a range with new text")
+    replace_parser = subparsers.add_parser(
+        "replace",
+        help="Replace a range with new text",
+        description="Replace text between start and end indices with new text"
+    )
     replace_parser.add_argument("document_id", help="Google Doc ID or full URL")
-    replace_parser.add_argument("start_index", type=int, help="Start of range (inclusive)")
-    replace_parser.add_argument("end_index", type=int, help="End of range (exclusive)")
-    replace_parser.add_argument("text", help="Replacement text")
-    replace_parser.add_argument("--force", action="store_true", help="Skip revision safety check (allow editing modified documents)")
-    replace_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
+    replace_parser.add_argument("start_index", type=int, help="Start of range to replace (inclusive)")
+    replace_parser.add_argument("end_index", type=int, help="End of range to replace (exclusive)")
+    replace_parser.add_argument("text", help="Replacement text (use \\n for newlines)")
+    replace_parser.add_argument("--force", action="store_true", help="Skip revision safety check")
+    replace_parser.add_argument("--dry-run", action="store_true", help="Preview the operation without executing")
 
     # Find command
-    find_parser = subparsers.add_parser("find", help="Find a section by heading text")
+    find_parser = subparsers.add_parser(
+        "find",
+        help="Find a section by heading text",
+        description="Locate a section by its heading and return the heading and content ranges"
+    )
     find_parser.add_argument("document_id", help="Google Doc ID or full URL")
-    find_parser.add_argument("heading", help="Heading text to search for")
+    find_parser.add_argument("heading", help="Heading text to search for (partial match supported)")
 
     # Batch command
-    batch_parser = subparsers.add_parser("batch", help="Execute multiple operations from JSON file")
+    batch_parser = subparsers.add_parser(
+        "batch",
+        help="Execute multiple operations from JSON file",
+        description="Run multiple insert/delete/replace operations atomically from a JSON file"
+    )
     batch_parser.add_argument("document_id", help="Google Doc ID or full URL")
-    batch_parser.add_argument("operations_file", help="Path to JSON file with operations")
-    batch_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
+    batch_parser.add_argument("operations_file", help="Path to JSON file with operations array")
+    batch_parser.add_argument("--dry-run", action="store_true", help="Preview the operations without executing")
 
     # Logout command
-    subparsers.add_parser("logout", help="Revoke and delete stored credentials")
+    subparsers.add_parser(
+        "logout",
+        help="Revoke and delete stored credentials",
+        description="Remove stored OAuth credentials (service account keys are not affected)"
+    )
 
     return parser
 
