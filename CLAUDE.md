@@ -11,6 +11,28 @@ This document provides context for Claude (or other AI assistants) working with 
 - Claude handles all semantic reasoning (finding sections, determining what to change)
 - Tool provides structured data optimized for AI parsing
 
+## Quick Setup for New Sessions
+
+If starting a new Claude Code session where `gdoc` isn't available:
+
+```bash
+# Install globally with pipx (recommended)
+pipx install git+https://github.com/defaye/gdoc-editor.git
+
+# Or with pip
+pip install git+https://github.com/defaye/gdoc-editor.git
+
+# Verify
+gdoc --help
+```
+
+**Authentication**: Set `GOOGLE_SERVICE_ACCOUNT_KEY_FILE` environment variable or create a `.env` file with:
+```
+GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/key.json
+```
+
+**Important**: The document must be shared with the service account email (found in the key JSON as `client_email`).
+
 ## Architecture
 
 ### Module Structure

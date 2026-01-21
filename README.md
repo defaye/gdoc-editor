@@ -2,6 +2,19 @@
 
 CLI tool for programmatic Google Docs editing via the Google Docs API. Designed for AI-driven document management, enabling precise read and edit operations on Google Docs.
 
+## Quick Start
+
+```bash
+# Install globally with pipx (recommended)
+pipx install git+https://github.com/defaye/gdoc-editor.git
+
+# Set up authentication (service account)
+export GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json
+
+# Read a document
+gdoc read <document-id>
+```
+
 ## Features
 
 - **Read**: Fetch document content with structural information (headings, paragraphs, indices)
@@ -14,30 +27,68 @@ CLI tool for programmatic Google Docs editing via the Google Docs API. Designed 
 
 ## Installation
 
+### Method 1: pipx (Recommended)
+
+**Best for**: Global installation, use across multiple projects, Claude Code sessions
+
+[pipx](https://pipx.pypa.io/) installs CLI tools in isolated environments, making them available system-wide without polluting your global Python environment.
+
+```bash
+# Install pipx if you don't have it
+brew install pipx  # macOS
+# or: python3 -m pip install --user pipx
+
+# Install gdoc-editor
+pipx install git+https://github.com/defaye/gdoc-editor.git
+
+# Verify installation
+gdoc --help
+```
+
+The `gdoc` command is now available globally in any terminal or Claude Code session.
+
+**Updating:**
+```bash
+pipx upgrade gdoc-editor
+```
+
+**Uninstalling:**
+```bash
+pipx uninstall gdoc-editor
+```
+
+### Method 2: pip (System-wide)
+
+**Best for**: Simple installation without pipx
+
+```bash
+# Install directly with pip
+pip install git+https://github.com/defaye/gdoc-editor.git
+
+# Verify installation
+gdoc --help
+```
+
+### Method 3: Development Installation
+
+**Best for**: Contributing to the project or making local modifications
+
+```bash
+# Clone the repository
+git clone https://github.com/defaye/gdoc-editor.git
+cd gdoc-editor
+
+# Install in editable mode
+pip install -e .
+
+# Changes to the code will be reflected immediately
+```
+
 ### Prerequisites
 
 - Python 3.8 or higher
 - Google Workspace account with access to Google Docs
-- Google Cloud project with Docs API enabled
-
-### Setup
-
-1. Clone this repository:
-```bash
-cd gdoc-editor
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Install the CLI tool:
-```bash
-pip install -e .
-```
-
-4. Set up Google authentication (see next section)
+- Google Cloud project with Docs API enabled (see Authentication Setup below)
 
 ## Authentication Setup
 
@@ -330,7 +381,38 @@ This tool is designed for **AI-driven document editing**:
 - **Precise control**: No automatic formatting or "helpful" modifications
 - **Structured output**: JSON format optimized for programmatic parsing
 
-## Tips for Claude Code
+## Using with Claude Code
+
+### First-Time Setup in a New Session
+
+If you're starting a fresh Claude Code session and the `gdoc` command isn't available:
+
+```bash
+# Quick install (recommended)
+pipx install git+https://github.com/defaye/gdoc-editor.git
+
+# Or with pip
+pip install git+https://github.com/defaye/gdoc-editor.git
+
+# Verify it works
+gdoc --help
+```
+
+### Authentication in New Sessions
+
+Set the environment variable for your service account key:
+
+```bash
+# If you have a .env file in your project
+export GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json
+
+# Or add to your project's .env file
+echo 'GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json' >> .env
+```
+
+**Remember**: Documents must be shared with your service account email (found in the key JSON as `client_email`).
+
+### Workflow Tips
 
 When using this tool with Claude Code:
 
@@ -339,6 +421,19 @@ When using this tool with Claude Code:
 3. **Calculate indices**: Use the structured JSON output to determine exact indices for edits
 4. **Test with dry-run**: Use `--dry-run` to preview operations before executing
 5. **Batch when possible**: Group multiple edits into a single batch operation for atomicity
+
+### Example: Updating a Section
+
+```bash
+# 1. Read the document to get structure
+gdoc read <doc-id> | jq . > doc.json
+
+# 2. Find the section you want to update
+gdoc find <doc-id> "Background"
+
+# 3. Replace the section content
+gdoc replace <doc-id> 335 433 "New background text.\n"
+```
 
 ## Troubleshooting
 
