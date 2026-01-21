@@ -40,24 +40,24 @@ Examples:
   # Find a section by heading
   gdoc-cli find <doc-id> "Background"
 
-  # Insert plain text
-  gdoc-cli insert <doc-id> 100 "New paragraph.\\n"
+  # Insert markdown (RECOMMENDED - v0.8.0+)
+  gdoc-cli insert-md <doc-id> 1 "## My Section\\n\\nParagraph with **bold** and *italic*.\\n"
+  gdoc-cli insert-md <doc-id> 1 --file content.md
 
-  # Insert with heading style
+  # Create full document with markdown (single command!)
+  gdoc-cli insert-md <doc-id> 1 "# Title\\n\\n## Section\\n\\n- Bullet 1\\n- Bullet 2\\n"
+
+  # Insert plain text (basic operations)
+  gdoc-cli insert <doc-id> 100 "New paragraph.\\n"
   gdoc-cli insert <doc-id> 100 "Section Title\\n" --style HEADING_2
 
-  # Insert bullet list (v0.5.0+)
+  # Insert bullet/numbered lists (manual approach)
   gdoc-cli insert <doc-id> 100 "Item 1\\nItem 2\\nItem 3\\n" --bullet BULLET_DISC_CIRCLE_SQUARE
-
-  # Insert numbered list (v0.5.0+)
   gdoc-cli insert <doc-id> 100 "Step 1\\nStep 2\\nStep 3\\n" --bullet NUMBERED_DECIMAL_ALPHA_ROMAN
 
-  # Insert with text formatting (v0.6.0+)
+  # Insert with text formatting (manual approach)
   gdoc-cli insert <doc-id> 100 "Bold text" --bold
-  gdoc-cli insert <doc-id> 100 "Italic text" --italic
-  gdoc-cli insert <doc-id> 100 "Code snippet" --code
   gdoc-cli insert <doc-id> 100 "Bold and italic" --bold --italic
-  gdoc-cli insert <doc-id> 100 "All formats!" --bold --italic --underline --strikethrough --code
 
   # Delete text range
   gdoc-cli delete <doc-id> 50 75
