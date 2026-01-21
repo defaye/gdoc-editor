@@ -238,8 +238,23 @@ This provides full read/write access. For read-only operations, you could use:
 
 ### Troubleshooting Auth
 
-**Service Account Issues**:
-1. Verify key file path is correct
+**Most Common Issue: "API not enabled" (403 error)**
+- Direct fix: https://console.cloud.google.com/apis/library/docs.googleapis.com?project=PROJECT-ID
+- Enable the Google Docs API
+- Wait 2-5 minutes for activation
+
+**Second Most Common: "Permission denied" (403 error)**
+- Document not shared with service account email
+- Find email in key JSON: `client_email` field
+- Share document with this email as Editor (not Viewer)
+
+**Service Account Setup Issues**:
+- Service Accounts are under "IAM & Admin" (NOT "APIs & Services")
+- Direct link: https://console.cloud.google.com/iam-admin/serviceaccounts
+- Key file must use absolute path, not relative
+
+**Service Account Runtime Issues**:
+1. Verify key file path is correct: `echo $GOOGLE_SERVICE_ACCOUNT_KEY_FILE`
 2. Ensure document is shared with service account email
 3. Check service account has Editor (not just Viewer) permissions
 4. Verify Google Docs API is enabled in the project

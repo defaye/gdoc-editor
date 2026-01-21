@@ -92,7 +92,14 @@ pip install -e .
 
 ## Authentication Setup
 
-This tool supports two authentication methods:
+This tool supports two authentication methods.
+
+### Quick Links (replace YOUR-PROJECT-ID with your actual project ID)
+
+- **Google Cloud Console**: https://console.cloud.google.com/
+- **Enable Google Docs API**: https://console.cloud.google.com/apis/library/docs.googleapis.com?project=YOUR-PROJECT-ID
+- **Service Accounts**: https://console.cloud.google.com/iam-admin/serviceaccounts?project=YOUR-PROJECT-ID
+- **API Library**: https://console.cloud.google.com/apis/library?project=YOUR-PROJECT-ID
 
 ### Method 1: Service Account (Recommended for CLI/Automation)
 
@@ -110,27 +117,45 @@ This tool supports two authentication methods:
 
 1. **Create a Google Cloud Project**
    - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select an existing one
+   - Click "Select a project" dropdown (top bar)
+   - Click "New Project"
+   - Give it a name (e.g., "gdoc-editor")
+   - Click "Create"
+   - Wait for the project to be created and select it
 
 2. **Enable the Google Docs API**
-   - Navigate to "APIs & Services" > "Library"
+
+   **IMPORTANT**: This step is required or you'll get "API not enabled" errors.
+
+   - Direct link: `https://console.cloud.google.com/apis/library/docs.googleapis.com?project=YOUR-PROJECT-ID`
+   - Or navigate: From the Cloud Console homepage, go to "APIs & Services" > "Library"
    - Search for "Google Docs API"
-   - Click "Enable"
+   - Click on "Google Docs API"
+   - Click the blue "Enable" button
+   - Wait a few moments for it to activate
 
 3. **Create a Service Account**
-   - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "Service Account"
+
+   **Note**: Service Accounts are under IAM & Admin, not under APIs & Services > Credentials.
+
+   - Direct link: `https://console.cloud.google.com/iam-admin/serviceaccounts?project=YOUR-PROJECT-ID`
+   - Or navigate: From the Cloud Console, click the hamburger menu (☰) > "IAM & Admin" > "Service Accounts"
+   - Click "+ CREATE SERVICE ACCOUNT" (at the top)
    - Give it a name (e.g., "gdoc-editor-bot")
-   - Click "Create and Continue"
-   - Skip the optional role assignment (click "Continue")
-   - Click "Done"
+   - Optionally add a description (e.g., "Service account for gdoc-editor CLI tool")
+   - Click "CREATE AND CONTINUE"
+   - Skip the optional role assignment (click "CONTINUE")
+   - Skip granting users access (click "DONE")
 
 4. **Create and Download Key File**
-   - Click on the service account you just created
-   - Go to the "Keys" tab
-   - Click "Add Key" > "Create new key"
-   - Choose "JSON" format
-   - Click "Create" (the key file will download automatically)
+   - You should now see your service account in the list
+   - Click on the service account email to open its details
+   - Go to the "KEYS" tab (top menu)
+   - Click "ADD KEY" > "Create new key"
+   - Select "JSON" format
+   - Click "CREATE"
+   - The key file will download automatically (e.g., `gdoc-editor-1a2b3c4d5e6f.json`)
+   - **IMPORTANT**: Keep this file secure - it's like a password for your service account
 
 5. **Configure the Tool**
    - Save the key file somewhere secure (e.g., `~/.config/gdoc-editor-key.json`)
@@ -437,17 +462,59 @@ gdoc replace <doc-id> 335 433 "New background text.\n"
 
 ## Troubleshooting
 
-### Authentication fails
+### "Google Docs API has not been used in project" or "API not enabled"
+
+This is the most common setup issue.
+
+**Solution**:
+1. Go to: `https://console.cloud.google.com/apis/library/docs.googleapis.com?project=YOUR-PROJECT-ID`
+2. Click the blue "Enable" button
+3. Wait 2-5 minutes for the API to activate
+4. Try your command again
+
+**How to verify it's enabled**:
+- Go to: `https://console.cloud.google.com/apis/dashboard?project=YOUR-PROJECT-ID`
+- You should see "Google Docs API" in the list of enabled APIs
+
+### "The caller does not have permission" (403 error)
+
+**Solution**:
+1. Open your service account key JSON file
+2. Find the `client_email` field (looks like `name@project-id.iam.gserviceaccount.com`)
+3. Open your Google Doc
+4. Click "Share" button
+5. Paste the service account email
+6. Give it "Editor" access (not just "Viewer")
+7. Click "Send"
+
+### Can't find Service Accounts in Cloud Console
+
+Service Accounts are NOT under "APIs & Services" > "Credentials".
+
+**Correct location**:
+- Direct link: `https://console.cloud.google.com/iam-admin/serviceaccounts`
+- Or navigate: Hamburger menu (☰) > "IAM & Admin" > "Service Accounts"
+
+### Service account key file not found
+
+**Error**: `Service account key file not found: /path/to/file.json`
+
+**Solution**:
+1. Make sure you've downloaded the JSON key file
+2. Verify the path in your environment variable or `.env` file:
+   ```bash
+   echo $GOOGLE_SERVICE_ACCOUNT_KEY_FILE
+   ```
+3. Use an absolute path, not a relative one:
+   - ✅ Good: `/Users/you/.config/gdoc-key.json`
+   - ❌ Bad: `./gdoc-key.json`
+
+### OAuth authentication fails (for OAuth method)
 
 - Ensure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set correctly
 - Delete `~/.gdoc-credentials.json` and re-authenticate
 - Check that you've added your email as a test user in OAuth consent screen
 - Verify the Google Docs API is enabled in your Cloud project
-
-### Permission denied on document
-
-- Ensure your Google account has edit access to the document
-- For read-only operations, make sure the document is at least viewable
 
 ### Index out of range
 
