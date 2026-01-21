@@ -31,6 +31,64 @@ If authentication isn't working, check:
 
 **Important**: Documents must be shared with the service account email (found in the key JSON as `client_email`).
 
+## Working with JSON Output
+
+All `gdoc-cli` commands output JSON for easy parsing. Use `jq` to extract specific fields:
+
+### Common jq Patterns
+
+**Get document length:**
+```bash
+gdoc-cli read <doc-id> | jq '.totalLength'
+```
+
+**List all headings with their indices:**
+```bash
+gdoc-cli read <doc-id> | jq '.content[] | select(.type | startswith("heading")) | {type, text, startIndex, endIndex}'
+```
+
+**Find a specific section by heading text:**
+```bash
+gdoc-cli read <doc-id> | jq '.content[] | select(.type | startswith("heading")) | select(.text | contains("Introduction"))'
+```
+
+**Get just the plain text:**
+```bash
+gdoc-cli read <doc-id> --format text
+# or with jq:
+gdoc-cli read <doc-id> | jq -r '.fullText'
+```
+
+**List all paragraphs (not headings):**
+```bash
+gdoc-cli read <doc-id> | jq '.content[] | select(.type == "paragraph") | {text, startIndex, endIndex}'
+```
+
+**Get content between specific indices:**
+```bash
+# Find where "Background" section ends and next section begins
+gdoc-cli read <doc-id> | jq '.content[] | select(.startIndex >= 100 and .endIndex <= 500)'
+```
+
+**Extract revision ID for safety checks:**
+```bash
+gdoc-cli read <doc-id> | jq -r '.revisionId'
+```
+
+### Workflow Example
+
+```bash
+# 1. Read document structure
+gdoc-cli read <doc-id> | jq . > doc.json
+
+# 2. Find the "Conclusion" section
+jq '.content[] | select(.text | contains("Conclusion"))' doc.json
+
+# 3. Note the endIndex of Conclusion heading (e.g., 450)
+# 4. Insert new content right after it
+gdoc-cli insert-md <doc-id> 450 "## New Section\n\nContent here."
+```
+
 ## Architecture
 
 ### Module Structure
