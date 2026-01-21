@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:developers.google.com)",
+      "Bash(pip install:*)",
+      "Bash(gdoc --help:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

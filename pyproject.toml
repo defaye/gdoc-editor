@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gdoc-editor"
+version = "0.1.0"
+description = "CLI tool for programmatic Google Docs editing via the Google Docs API"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "gdoc-editor"}
+]
+dependencies = [
+    "google-api-python-client>=2.100.0",
+    "google-auth-httplib2>=0.1.1",
+    "google-auth-oauthlib>=1.1.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+gdoc = "gdoc.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.7.0",
+    "ruff>=0.0.286",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gdoc*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
