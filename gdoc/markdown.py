@@ -181,6 +181,20 @@ def parse_markdown_to_requests(text: str, start_index: int) -> Tuple[List[Dict[s
                     "fields": "namedStyleType"
                 }
             })
+        elif style_type == 'paragraph':
+            # Explicitly set regular paragraphs to NORMAL_TEXT to prevent style inheritance
+            requests.append({
+                "updateParagraphStyle": {
+                    "range": {
+                        "startIndex": current_idx,
+                        "endIndex": line_end
+                    },
+                    "paragraphStyle": {
+                        "namedStyleType": "NORMAL_TEXT"
+                    },
+                    "fields": "namedStyleType"
+                }
+            })
         elif style_type == 'bullet':
             bullet_ranges.append((current_idx, line_end))
         elif style_type == 'numbered':
