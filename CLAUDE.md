@@ -51,6 +51,60 @@ gdoc/
 3. **JSON output**: Structured format that's trivial for Claude to parse
 4. **Index-based operations**: No semantic understanding in the tool itself
 
+## Adding New Features - Checklist
+
+When adding a new feature (like a new flag, command, or capability), update ALL of these locations:
+
+### 1. Core Implementation
+- [ ] `gdoc/editor.py` - Add function parameters and implementation logic
+- [ ] `gdoc/cli.py` - Add CLI arguments to the argument parser
+- [ ] `gdoc/cli.py` - Update handler function (e.g., `handle_insert`) to pass new parameters
+- [ ] `gdoc/cli.py` - Update success message to reflect new feature
+
+### 2. CLI Help Text
+- [ ] `gdoc/cli.py` - Update `epilog` in `setup_parser()` with examples of new feature
+- [ ] `gdoc/cli.py` - Add argument with clear `help` text in subparser
+- [ ] `gdoc/cli.py` - Add description to subparser if it affects the command's purpose
+
+### 3. Documentation
+- [ ] `README.md` - Add examples in the relevant command section
+- [ ] `README.md` - Add feature to the "Features" list at the top if it's major
+- [ ] `CLAUDE.md` - Update "When you work with this tool" tips section
+- [ ] `CLAUDE.md` - Add entry to "Version History" section
+
+### 4. Version Management
+- [ ] `gdoc/__init__.py` - Bump `__version__`
+- [ ] `pyproject.toml` - Update `version` field to match
+
+### 5. Testing
+- [ ] Test the feature manually with various combinations
+- [ ] Test edge cases (empty input, combined with other flags, etc.)
+- [ ] Test with test document to verify visual rendering
+- [ ] Run `gdoc-cli --help` to verify help text looks correct
+- [ ] Run `gdoc-cli <command> --help` to verify subcommand help
+
+### 6. Git Commit
+- [ ] Write clear commit message describing the feature
+- [ ] Include examples in commit message
+- [ ] List all changes (implementation, CLI, docs)
+- [ ] Add "Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+### Example: Adding Text Formatting (v0.6.0)
+
+This is a good reference for how all pieces fit together:
+
+**Implementation**: Added `bold`, `italic`, etc. parameters to `insert_text()` in editor.py, built `updateTextStyle` request
+
+**CLI**: Added `--bold`, `--italic` flags to insert parser, updated `handle_insert()` to pass them through
+
+**Help**: Added text formatting examples to epilog, clear help text for each flag
+
+**Docs**: Added "Text formatting" section to README with examples, updated CLAUDE.md tips and version history
+
+**Testing**: Tested individually and combined, verified visual rendering in test doc
+
+**Commit**: Detailed commit message with examples, implementation notes, and testing confirmation
+
 ## Google Docs API Critical Details
 
 ### Index System
