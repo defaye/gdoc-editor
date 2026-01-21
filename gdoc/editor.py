@@ -54,6 +54,11 @@ def insert_text(
     text: str,
     paragraph_style: Optional[str] = None,
     bullet_preset: Optional[str] = None,
+    bold: bool = False,
+    italic: bool = False,
+    underline: bool = False,
+    strikethrough: bool = False,
+    code: bool = False,
     required_revision_id: Optional[str] = None,
     dry_run: bool = False
 ) -> Dict[str, Any]:
@@ -67,6 +72,11 @@ def insert_text(
         text: The text to insert
         paragraph_style: Optional paragraph style (e.g., 'NORMAL_TEXT', 'HEADING_1', 'HEADING_2')
         bullet_preset: Optional bullet list preset (e.g., 'BULLET_DISC_CIRCLE_SQUARE', 'NUMBERED_DECIMAL')
+        bold: If True, make text bold
+        italic: If True, make text italic
+        underline: If True, underline text
+        strikethrough: If True, add strikethrough to text
+        code: If True, apply monospace font (Courier New) for code formatting
         required_revision_id: Optional revision ID for safety - operation fails if document changed
         dry_run: If True, return the request without executing it
 
@@ -120,6 +130,45 @@ def insert_text(
             }
         }
         requests.append(bullet_request)
+
+    # Fourth request: apply text formatting if any specified
+    if bold or italic or underline or strikethrough or code:
+        text_style = {}
+        fields = []
+
+        if bold:
+            text_style["bold"] = True
+            fields.append("bold")
+
+        if italic:
+            text_style["italic"] = True
+            fields.append("italic")
+
+        if underline:
+            text_style["underline"] = True
+            fields.append("underline")
+
+        if strikethrough:
+            text_style["strikethrough"] = True
+            fields.append("strikethrough")
+
+        if code:
+            text_style["weightedFontFamily"] = {
+                "fontFamily": "Courier New"
+            }
+            fields.append("weightedFontFamily")
+
+        text_style_request = {
+            "updateTextStyle": {
+                "range": {
+                    "startIndex": index,
+                    "endIndex": end_index,
+                },
+                "textStyle": text_style,
+                "fields": ",".join(fields)
+            }
+        }
+        requests.append(text_style_request)
 
     if dry_run:
         return {

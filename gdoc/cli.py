@@ -51,6 +51,13 @@ Examples:
   # Insert numbered list (v0.5.0+)
   gdoc-cli insert <doc-id> 100 "Step 1\\nStep 2\\nStep 3\\n" --bullet NUMBERED_DECIMAL_ALPHA_ROMAN
 
+  # Insert with text formatting (v0.6.0+)
+  gdoc-cli insert <doc-id> 100 "Bold text" --bold
+  gdoc-cli insert <doc-id> 100 "Italic text" --italic
+  gdoc-cli insert <doc-id> 100 "Code snippet" --code
+  gdoc-cli insert <doc-id> 100 "Bold and italic" --bold --italic
+  gdoc-cli insert <doc-id> 100 "All formats!" --bold --italic --underline --strikethrough --code
+
   # Delete text range
   gdoc-cli delete <doc-id> 50 75
 
@@ -123,6 +130,11 @@ More info:
                  "NUMBERED_ZERODECIMAL_ALPHA_ROMAN"],
         help="Apply bullet/numbered list formatting to inserted paragraphs"
     )
+    insert_parser.add_argument("--bold", action="store_true", help="Make text bold")
+    insert_parser.add_argument("--italic", action="store_true", help="Make text italic")
+    insert_parser.add_argument("--underline", action="store_true", help="Underline text")
+    insert_parser.add_argument("--strikethrough", action="store_true", help="Add strikethrough to text")
+    insert_parser.add_argument("--code", action="store_true", help="Apply monospace font for code (Courier New)")
     insert_parser.add_argument("--force", action="store_true", help="Skip revision safety check")
     insert_parser.add_argument("--dry-run", action="store_true", help="Preview the operation without executing")
 
@@ -271,6 +283,11 @@ def handle_insert(args, service):
         text,
         paragraph_style=paragraph_style,
         bullet_preset=args.bullet,
+        bold=args.bold,
+        italic=args.italic,
+        underline=args.underline,
+        strikethrough=args.strikethrough,
+        code=args.code,
         required_revision_id=revision_id,
         dry_run=args.dry_run
     )
@@ -278,7 +295,23 @@ def handle_insert(args, service):
     if not args.dry_run:
         style_msg = f" with style {paragraph_style}" if paragraph_style else ""
         bullet_msg = f" as {args.bullet} list" if args.bullet else ""
-        print(f"\n✓ Inserted text at index {args.index}{style_msg}{bullet_msg}")
+
+        # Build text formatting message
+        format_parts = []
+        if args.bold:
+            format_parts.append("bold")
+        if args.italic:
+            format_parts.append("italic")
+        if args.underline:
+            format_parts.append("underline")
+        if args.strikethrough:
+            format_parts.append("strikethrough")
+        if args.code:
+            format_parts.append("code")
+
+        format_msg = f" ({', '.join(format_parts)})" if format_parts else ""
+
+        print(f"\n✓ Inserted text at index {args.index}{style_msg}{bullet_msg}{format_msg}")
 
 
 def handle_delete(args, service):

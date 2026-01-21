@@ -366,6 +366,28 @@ gdoc-cli insert <document-id> <index> "Step 1\nStep 2\nStep 3\n" --bullet NUMBER
 # - NUMBERED_ZERODECIMAL_ALPHA_ROMAN (01. a. i.)
 ```
 
+**Text formatting**: Apply character-level formatting like bold, italic, etc.:
+
+```bash
+# Single formatting
+gdoc-cli insert <document-id> <index> "Bold text" --bold
+gdoc-cli insert <document-id> <index> "Italic text" --italic
+gdoc-cli insert <document-id> <index> "Underlined text" --underline
+gdoc-cli insert <document-id> <index> "Strikethrough text" --strikethrough
+gdoc-cli insert <document-id> <index> "Code snippet" --code
+
+# Combine multiple formats
+gdoc-cli insert <document-id> <index> "Bold and italic" --bold --italic
+gdoc-cli insert <document-id> <index> "All formats!" --bold --italic --underline --strikethrough --code
+
+# Available text formats:
+# --bold          Make text bold
+# --italic        Make text italic
+# --underline     Underline text
+# --strikethrough Add strikethrough
+# --code          Apply monospace font (Courier New) for code
+```
+
 **Escape sequences**: The tool automatically converts escape sequences in your text:
 ```bash
 # \n becomes a real newline
