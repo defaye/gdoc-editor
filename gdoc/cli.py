@@ -131,20 +131,43 @@ def handle_read(args, service):
     print(output)
 
 
+def decode_escape_sequences(text: str) -> str:
+    """
+    Decode common escape sequences like \\n, \\t, etc.
+
+    Handles the case where bash passes literal backslash-n instead of a newline.
+    Processes escape sequences in the correct order to handle escaped backslashes.
+    """
+    # Process escape sequences in order (escaped backslashes first)
+    replacements = [
+        ('\\\\', '\x00'),  # Temporarily replace \\\\ with null byte
+        ('\\n', '\n'),     # Replace \\n with newline
+        ('\\t', '\t'),     # Replace \\t with tab
+        ('\\r', '\r'),     # Replace \\r with carriage return
+        ('\x00', '\\'),    # Restore single backslashes
+    ]
+    for old, new in replacements:
+        text = text.replace(old, new)
+    return text
+
+
 def handle_insert(args, service):
     """Handle the insert command."""
     doc_id = extract_document_id(args.document_id)
 
+    # Decode escape sequences (e.g., convert literal \\n to actual newline)
+    text = decode_escape_sequences(args.text)
+
     # Auto-apply NORMAL_TEXT style if text ends with newline and no style specified
     paragraph_style = args.style
-    if paragraph_style is None and args.text.endswith('\n'):
+    if paragraph_style is None and text.endswith('\n'):
         paragraph_style = 'NORMAL_TEXT'
 
     result = insert_text(
         service,
         doc_id,
         args.index,
-        args.text,
+        text,
         paragraph_style=paragraph_style,
         dry_run=args.dry_run
     )
@@ -166,8 +189,12 @@ def handle_delete(args, service):
 def handle_replace(args, service):
     """Handle the replace command."""
     doc_id = extract_document_id(args.document_id)
+
+    # Decode escape sequences (e.g., convert literal \\n to actual newline)
+    text = decode_escape_sequences(args.text)
+
     result = replace_text(
-        service, doc_id, args.start_index, args.end_index, args.text, dry_run=args.dry_run
+        service, doc_id, args.start_index, args.end_index, text, dry_run=args.dry_run
     )
     print(json.dumps(result, indent=2))
     if not args.dry_run:

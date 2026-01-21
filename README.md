@@ -329,6 +329,18 @@ gdoc-cli insert <document-id> <index> "Section Title\n" --style HEADING_2
 
 **Important**: If you insert text ending with `\n` without specifying `--style`, it will automatically be styled as `NORMAL_TEXT` to prevent inheriting incorrect heading formats.
 
+**Escape sequences**: The tool automatically converts escape sequences in your text:
+```bash
+# \n becomes a real newline
+gdoc-cli insert <doc-id> 100 "Line 1\nLine 2\n"
+
+# \t becomes a real tab
+gdoc-cli insert <doc-id> 100 "Name:\tJohn Doe\n"
+
+# \\ becomes a single backslash
+gdoc-cli insert <doc-id> 100 "Path: C:\\Users\\Name\n"
+```
+
 Preview without executing:
 ```bash
 gdoc-cli insert <document-id> <index> "Text" --dry-run
