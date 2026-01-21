@@ -443,9 +443,10 @@ gdoc-cli insert-md <document-id> <index> --file content.md
 - Headings: `#`, `##`, `###` (H1, H2, H3)
 - Bullet lists: `- item` or `* item`
 - Numbered lists: `1. item`, `2. item`
-- Bold: `**text**` (coming soon)
-- Italic: `*text*` (coming soon)
-- Code: `` `text` `` (coming soon)
+- Bold: `**text**`
+- Italic: `*text*`
+- Bold+Italic: `***text***`
+- Inline code: `` `text` ``
 
 **Example: Creating a complete document**:
 ```bash
