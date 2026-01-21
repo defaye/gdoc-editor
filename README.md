@@ -315,6 +315,20 @@ Example:
 gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New paragraph here.\n"
 ```
 
+**Paragraph styling**: Control the style of inserted text with `--style`:
+
+```bash
+# Insert as normal text (auto-applied if text ends with \n)
+gdoc-cli insert <document-id> <index> "Normal text.\n" --style NORMAL_TEXT
+
+# Insert as a heading
+gdoc-cli insert <document-id> <index> "Section Title\n" --style HEADING_2
+
+# Available styles: NORMAL_TEXT, HEADING_1, HEADING_2, HEADING_3, HEADING_4, HEADING_5, HEADING_6, TITLE, SUBTITLE
+```
+
+**Important**: If you insert text ending with `\n` without specifying `--style`, it will automatically be styled as `NORMAL_TEXT` to prevent inheriting incorrect heading formats.
+
 Preview without executing:
 ```bash
 gdoc-cli insert <document-id> <index> "Text" --dry-run

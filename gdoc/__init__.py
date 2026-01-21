@@ -5,4 +5,4 @@ This package provides a command-line interface for reading and editing
 Google Docs via the Google Docs API, designed for AI-driven document management.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

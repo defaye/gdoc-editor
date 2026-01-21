@@ -47,7 +47,14 @@ class EditOperation:
             return f"Unknown operation: {self.op_type}"
 
 
-def insert_text(service, document_id: str, index: int, text: str, dry_run: bool = False) -> Dict[str, Any]:
+def insert_text(
+    service,
+    document_id: str,
+    index: int,
+    text: str,
+    paragraph_style: Optional[str] = None,
+    dry_run: bool = False
+) -> Dict[str, Any]:
     """
     Insert text at a specific index in the document.
 
@@ -56,6 +63,7 @@ def insert_text(service, document_id: str, index: int, text: str, dry_run: bool 
         document_id: The ID of the document to edit
         index: The index where text should be inserted (0-based, UTF-16 code units)
         text: The text to insert
+        paragraph_style: Optional paragraph style (e.g., 'NORMAL_TEXT', 'HEADING_1', 'HEADING_2')
         dry_run: If True, return the request without executing it
 
     Returns:
@@ -64,16 +72,53 @@ def insert_text(service, document_id: str, index: int, text: str, dry_run: bool 
     Raises:
         Exception: If the operation fails
     """
-    operation = EditOperation("insert", index, text=text)
+    # Build requests list
+    requests = []
+
+    # First request: insert text
+    insert_request = {
+        "insertText": {
+            "location": {"index": index},
+            "text": text,
+        }
+    }
+    requests.append(insert_request)
+
+    # Second request: apply paragraph style if specified
+    if paragraph_style:
+        # Calculate the range of inserted text
+        text_length = len(text.encode('utf-16-le')) // 2  # UTF-16 code units
+        end_index = index + text_length
+
+        style_request = {
+            "updateParagraphStyle": {
+                "range": {
+                    "startIndex": index,
+                    "endIndex": end_index,
+                },
+                "paragraphStyle": {
+                    "namedStyleType": paragraph_style
+                },
+                "fields": "namedStyleType"
+            }
+        }
+        requests.append(style_request)
 
     if dry_run:
         return {
             "dry_run": True,
-            "operation": str(operation),
-            "request": operation.to_request(),
+            "requests": requests,
         }
 
-    return execute_operations(service, document_id, [operation])
+    # Execute batch update
+    try:
+        response = service.documents().batchUpdate(
+            documentId=document_id,
+            body={"requests": requests}
+        ).execute()
+        return response
+    except Exception as e:
+        raise Exception(f"Insert operation failed: {e}")
 
 
 def delete_text(service, document_id: str, start_index: int, end_index: int, dry_run: bool = False) -> Dict[str, Any]:

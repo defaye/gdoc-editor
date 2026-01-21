@@ -193,7 +193,24 @@ Use `replace` instead of separate delete+insert when possible:
 - `replace` is atomic and handles ordering automatically
 - Separate operations require careful index management
 
-### 4. Working with Tables
+### 4. Paragraph Style Inheritance
+
+When you insert text, it inherits the style of surrounding text. This can cause inserted normal text to become a heading.
+
+```bash
+# Wrong - may inherit HEADING_2 style if inserted after a heading
+gdoc-cli insert <doc-id> 100 "Normal text\n"
+
+# Right - explicitly set style to NORMAL_TEXT
+gdoc-cli insert <doc-id> 100 "Normal text\n" --style NORMAL_TEXT
+
+# Or insert a heading
+gdoc-cli insert <doc-id> 100 "New Section\n" --style HEADING_2
+```
+
+**Auto-styling**: If your text ends with `\n` and you don't specify `--style`, `NORMAL_TEXT` is automatically applied to prevent style inheritance issues.
+
+### 5. Working with Tables
 
 Tables are complex structures. The current implementation has basic table detection but doesn't parse table contents. For table editing:
 1. Read the document to identify table start/end indices
@@ -342,6 +359,12 @@ When you (Claude Code) work with this tool:
 7. **The `find` command is your friend**: Quick way to locate sections
 
 ## Version History
+
+- **v0.4.0** (2026-01-21): Added paragraph styling support
+  - New `--style` option for insert command
+  - Supports NORMAL_TEXT, HEADING_1-6, TITLE, SUBTITLE
+  - Auto-applies NORMAL_TEXT for text ending with `\n` to prevent style inheritance
+  - Fixes issue where inserted text inherits incorrect heading formats
 
 - **v0.3.0** (2026-01-21): Renamed command to `gdoc-cli`
   - Changed command from `gdoc` to `gdoc-cli` for clarity

@@ -31,6 +31,9 @@ Examples:
   # Insert text at index 100
   gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New text"
 
+  # Insert text with specific paragraph style
+  gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New heading\n" --style HEADING_2
+
   # Delete text from index 50 to 60
   gdoc-cli delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 60
 
@@ -62,6 +65,11 @@ Examples:
     insert_parser.add_argument("document_id", help="Google Doc ID or full URL")
     insert_parser.add_argument("index", type=int, help="Index where text should be inserted")
     insert_parser.add_argument("text", help="Text to insert")
+    insert_parser.add_argument(
+        "--style",
+        choices=["NORMAL_TEXT", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6", "TITLE", "SUBTITLE"],
+        help="Paragraph style (default: NORMAL_TEXT if text ends with newline)"
+    )
     insert_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
 
     # Delete command
@@ -126,10 +134,24 @@ def handle_read(args, service):
 def handle_insert(args, service):
     """Handle the insert command."""
     doc_id = extract_document_id(args.document_id)
-    result = insert_text(service, doc_id, args.index, args.text, dry_run=args.dry_run)
+
+    # Auto-apply NORMAL_TEXT style if text ends with newline and no style specified
+    paragraph_style = args.style
+    if paragraph_style is None and args.text.endswith('\n'):
+        paragraph_style = 'NORMAL_TEXT'
+
+    result = insert_text(
+        service,
+        doc_id,
+        args.index,
+        args.text,
+        paragraph_style=paragraph_style,
+        dry_run=args.dry_run
+    )
     print(json.dumps(result, indent=2))
     if not args.dry_run:
-        print(f"\n✓ Inserted text at index {args.index}")
+        style_msg = f" with style {paragraph_style}" if paragraph_style else ""
+        print(f"\n✓ Inserted text at index {args.index}{style_msg}")
 
 
 def handle_delete(args, service):
