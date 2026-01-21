@@ -12,6 +12,7 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
+from gdoc import __version__
 from gdoc.auth import get_docs_service, revoke_credentials, AuthenticationError
 from gdoc.reader import read_document, find_section
 from gdoc.editor import insert_text, delete_text, replace_text, batch_edit
@@ -46,6 +47,12 @@ Examples:
   # Revoke stored credentials
   gdoc-cli logout
         """,
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"gdoc-cli {__version__}"
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")

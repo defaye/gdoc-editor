@@ -17,6 +17,9 @@ source ~/.zshrc
 
 # 4. Use it
 gdoc-cli read <document-id>
+
+# Check your version
+gdoc-cli --version
 ```
 
 **Prerequisites**: You need a Google Cloud service account key file. See [Authentication Setup](#authentication-setup) below for how to create one.
@@ -53,9 +56,21 @@ gdoc-cli --help
 
 The `gdoc-cli` command is now available globally in any terminal or Claude Code session.
 
-**Updating:**
+**Checking your version:**
 ```bash
+gdoc-cli --version
+```
+
+**Updating to the latest version:**
+```bash
+# Check current version
+gdoc-cli --version
+
+# Upgrade
 pipx upgrade gdoc-editor
+
+# Verify new version
+gdoc-cli --version
 ```
 
 **Uninstalling:**
