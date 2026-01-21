@@ -1,16 +1,17 @@
 """
 Authentication module for Google Docs API.
 
-Handles OAuth 2.0 authentication flow and credential management.
+Handles OAuth 2.0 and Service Account authentication.
 """
 
 import os
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
@@ -24,6 +25,43 @@ DEFAULT_CREDS_PATH = Path.home() / ".gdoc-credentials.json"
 class AuthenticationError(Exception):
     """Raised when authentication fails."""
     pass
+
+
+def get_service_account_credentials(
+    key_file: Optional[str] = None,
+) -> ServiceAccountCredentials:
+    """
+    Get credentials from a service account key file.
+
+    Args:
+        key_file: Path to service account JSON key file (from environment if not provided)
+
+    Returns:
+        Service account credentials object
+
+    Raises:
+        AuthenticationError: If key file is missing or invalid
+    """
+    key_file = key_file or os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY_FILE")
+
+    if not key_file:
+        raise AuthenticationError(
+            "Service account key file not specified. "
+            "Set GOOGLE_SERVICE_ACCOUNT_KEY_FILE environment variable."
+        )
+
+    key_path = Path(key_file).expanduser()
+
+    if not key_path.exists():
+        raise AuthenticationError(f"Service account key file not found: {key_path}")
+
+    try:
+        creds = ServiceAccountCredentials.from_service_account_file(
+            str(key_path), scopes=SCOPES
+        )
+        return creds
+    except Exception as e:
+        raise AuthenticationError(f"Failed to load service account credentials: {e}")
 
 
 def get_credentials(
@@ -108,9 +146,15 @@ def get_credentials(
     return creds
 
 
-def get_docs_service(creds: Optional[Credentials] = None):
+def get_docs_service(
+    creds: Optional[Union[Credentials, ServiceAccountCredentials]] = None,
+):
     """
     Get an authenticated Google Docs API service.
+
+    Automatically detects and uses the appropriate authentication method:
+    1. If GOOGLE_SERVICE_ACCOUNT_KEY_FILE is set, uses service account auth
+    2. Otherwise, uses OAuth 2.0 flow
 
     Args:
         creds: Existing credentials (will create new ones if not provided)
@@ -119,7 +163,11 @@ def get_docs_service(creds: Optional[Credentials] = None):
         Authenticated Google Docs API service object
     """
     if creds is None:
-        creds = get_credentials()
+        # Check for service account key file first
+        if os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY_FILE"):
+            creds = get_service_account_credentials()
+        else:
+            creds = get_credentials()
 
     return build("docs", "v1", credentials=creds)
 

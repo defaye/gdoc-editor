@@ -37,22 +37,87 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-4. Set up Google OAuth credentials (see next section)
+4. Set up Google authentication (see next section)
 
-## Google OAuth Setup
+## Authentication Setup
 
-To use this tool, you need OAuth 2.0 credentials from Google Cloud Console.
+This tool supports two authentication methods:
 
-### Step-by-step guide:
+### Method 1: Service Account (Recommended for CLI/Automation)
+
+**Best for**: Programmatic access, automation, CI/CD, no browser required
+
+**Pros**:
+- No browser-based OAuth flow
+- Works in headless environments
+- Simple JSON key file
+
+**Cons**:
+- Must explicitly share documents with the service account email
+
+**Setup**:
 
 1. **Create a Google Cloud Project**
    - Go to [Google Cloud Console](https://console.cloud.google.com/)
    - Create a new project or select an existing one
 
 2. **Enable the Google Docs API**
-   - In the Cloud Console, navigate to "APIs & Services" > "Library"
+   - Navigate to "APIs & Services" > "Library"
    - Search for "Google Docs API"
    - Click "Enable"
+
+3. **Create a Service Account**
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "Service Account"
+   - Give it a name (e.g., "gdoc-editor-bot")
+   - Click "Create and Continue"
+   - Skip the optional role assignment (click "Continue")
+   - Click "Done"
+
+4. **Create and Download Key File**
+   - Click on the service account you just created
+   - Go to the "Keys" tab
+   - Click "Add Key" > "Create new key"
+   - Choose "JSON" format
+   - Click "Create" (the key file will download automatically)
+
+5. **Configure the Tool**
+   - Save the key file somewhere secure (e.g., `~/.config/gdoc-editor-key.json`)
+   - Set the environment variable:
+     ```bash
+     export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"
+     ```
+   - Or add to `.env` file:
+     ```bash
+     cp .env.example .env
+     # Edit .env and add:
+     GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json
+     ```
+
+6. **Share Documents with the Service Account**
+   - Open the key JSON file and copy the `client_email` (looks like `gdoc-editor-bot@project-id.iam.gserviceaccount.com`)
+   - Share your Google Doc with this email address (just like sharing with a person)
+   - Give it "Editor" access
+
+That's it! The tool will now authenticate automatically without any browser prompts.
+
+### Method 2: OAuth 2.0 (User Credentials)
+
+**Best for**: Personal use, accessing your own documents
+
+**Pros**:
+- No need to share documents
+- Acts as your user account
+
+**Cons**:
+- Requires browser-based OAuth flow on first run
+- Not suitable for headless/automation environments
+
+**Setup**:
+
+1. **Create a Google Cloud Project** (same as above)
+
+2. **Enable the Google Docs API** (same as above)
 
 3. **Create OAuth 2.0 Credentials**
    - Go to "APIs & Services" > "Credentials"
@@ -67,13 +132,13 @@ To use this tool, you need OAuth 2.0 credentials from Google Cloud Console.
    - Click "Create"
 
 4. **Save Your Credentials**
-   - Download the client configuration JSON (or copy the client ID and secret)
+   - Copy the client ID and client secret
    - Set environment variables:
      ```bash
      export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
      export GOOGLE_CLIENT_SECRET="your-client-secret"
      ```
-   - Or create a `.env` file (recommended):
+   - Or add to `.env` file:
      ```bash
      cp .env.example .env
      # Edit .env and add your credentials

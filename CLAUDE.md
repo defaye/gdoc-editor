@@ -181,10 +181,32 @@ Tables are complex structures. The current implementation has basic table detect
 
 ## Authentication Notes
 
-### OAuth Flow
+The tool supports two authentication methods:
+
+### Method 1: Service Account (Recommended)
+- Uses a JSON key file (`GOOGLE_SERVICE_ACCOUNT_KEY_FILE` environment variable)
+- No browser interaction required
+- Perfect for CLI/automation/headless environments
+- **Important**: Documents must be explicitly shared with the service account email
+- Service account email found in the key JSON file: `client_email` field
+
+**Setup**:
+1. Create service account in Google Cloud Console
+2. Download JSON key file
+3. Set `GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/key.json`
+4. Share documents with the service account email (give Editor access)
+
+### Method 2: OAuth 2.0 Flow
+- Uses client ID and secret (`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`)
 - First run opens browser for user consent
 - Credentials saved to `~/.gdoc-credentials.json`
 - Refresh tokens used automatically on subsequent runs
+- No need to share documents (acts as your user)
+
+**Setup**:
+1. Create OAuth credentials in Google Cloud Console
+2. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+3. Run any command - browser will open for authentication
 
 ### Scopes
 Currently uses: `https://www.googleapis.com/auth/documents`
@@ -193,7 +215,14 @@ This provides full read/write access. For read-only operations, you could use:
 `https://www.googleapis.com/auth/documents.readonly`
 
 ### Troubleshooting Auth
-If authentication fails:
+
+**Service Account Issues**:
+1. Verify key file path is correct
+2. Ensure document is shared with service account email
+3. Check service account has Editor (not just Viewer) permissions
+4. Verify Google Docs API is enabled in the project
+
+**OAuth Issues**:
 1. Check environment variables are set
 2. Verify Google Cloud project has Docs API enabled
 3. Ensure user is added as test user in OAuth consent screen
@@ -278,6 +307,11 @@ When you (Claude Code) work with this tool:
 7. **The `find` command is your friend**: Quick way to locate sections
 
 ## Version History
+
+- **v0.2.0** (2026-01-21): Added service account authentication
+  - Service account authentication via JSON key file
+  - Automatic detection of authentication method
+  - Updated documentation for both auth methods
 
 - **v0.1.0** (2026-01-21): Initial implementation
   - Basic read/insert/delete/replace operations
