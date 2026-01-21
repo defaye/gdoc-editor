@@ -16,22 +16,20 @@ This document provides context for Claude (or other AI assistants) working with 
 If starting a new Claude Code session where `gdoc` isn't available:
 
 ```bash
-# Install globally with pipx (recommended)
 pipx install git+https://github.com/defaye/gdoc-editor.git
-
-# Or with pip
-pip install git+https://github.com/defaye/gdoc-editor.git
-
-# Verify
-gdoc --help
 ```
 
-**Authentication**: Set `GOOGLE_SERVICE_ACCOUNT_KEY_FILE` environment variable or create a `.env` file with:
-```
-GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/key.json
+**Authentication**: Should already be configured in the user's shell config (`~/.zshrc` or `~/.bashrc`) with:
+```bash
+export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"
 ```
 
-**Important**: The document must be shared with the service account email (found in the key JSON as `client_email`).
+If authentication isn't working, check:
+1. Is the env var set? `echo $GOOGLE_SERVICE_ACCOUNT_KEY_FILE`
+2. Does the key file exist? `ls -l ~/.config/gdoc-editor-key.json`
+3. Is the document shared with the service account? `grep client_email ~/.config/gdoc-editor-key.json`
+
+**Important**: Documents must be shared with the service account email (found in the key JSON as `client_email`).
 
 ## Architecture
 

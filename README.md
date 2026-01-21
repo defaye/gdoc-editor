@@ -5,15 +5,21 @@ CLI tool for programmatic Google Docs editing via the Google Docs API. Designed 
 ## Quick Start
 
 ```bash
-# Install globally with pipx (recommended)
+# 1. Install the tool
 pipx install git+https://github.com/defaye/gdoc-editor.git
 
-# Set up authentication (service account)
-export GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json
+# 2. Add authentication to your shell config (one-time setup)
+echo 'export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"' >> ~/.zshrc
+# or for bash: >> ~/.bashrc
 
-# Read a document
+# 3. Reload your shell
+source ~/.zshrc
+
+# 4. Use it
 gdoc read <document-id>
 ```
+
+**Prerequisites**: You need a Google Cloud service account key file. See [Authentication Setup](#authentication-setup) below for how to create one.
 
 ## Features
 
@@ -157,25 +163,47 @@ This tool supports two authentication methods.
    - The key file will download automatically (e.g., `gdoc-editor-1a2b3c4d5e6f.json`)
    - **IMPORTANT**: Keep this file secure - it's like a password for your service account
 
-5. **Configure the Tool**
-   - Save the key file somewhere secure (e.g., `~/.config/gdoc-editor-key.json`)
-   - Set the environment variable:
-     ```bash
-     export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"
-     ```
-   - Or add to `.env` file:
-     ```bash
-     cp .env.example .env
-     # Edit .env and add:
-     GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json
-     ```
+5. **Configure the Tool** (one-time setup)
+
+   Move the downloaded key file to a permanent location:
+   ```bash
+   mkdir -p ~/.config
+   mv ~/Downloads/gdoc-editor-*.json ~/.config/gdoc-editor-key.json
+   ```
+
+   Add the environment variable to your shell config:
+   ```bash
+   # For zsh (macOS default)
+   echo 'export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"' >> ~/.zshrc
+   source ~/.zshrc
+
+   # For bash (Linux default)
+   echo 'export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+   Verify it's set:
+   ```bash
+   echo $GOOGLE_SERVICE_ACCOUNT_KEY_FILE
+   # Should output: /Users/you/.config/gdoc-editor-key.json
+   ```
 
 6. **Share Documents with the Service Account**
-   - Open the key JSON file and copy the `client_email` (looks like `gdoc-editor-bot@project-id.iam.gserviceaccount.com`)
-   - Share your Google Doc with this email address (just like sharing with a person)
-   - Give it "Editor" access
 
-That's it! The tool will now authenticate automatically without any browser prompts.
+   Find your service account email:
+   ```bash
+   grep client_email ~/.config/gdoc-editor-key.json
+   # Output: "client_email": "gdoc-editor-bot@project-id.iam.gserviceaccount.com"
+   ```
+
+   Share your Google Docs with this email:
+   - Open your Google Doc
+   - Click "Share" button
+   - Paste the service account email
+   - Give it "Editor" access
+   - Click "Send"
+
+Done! The `gdoc` command is now available everywhere, authenticated and ready to use.
 
 ### Method 2: OAuth 2.0 (User Credentials)
 
@@ -408,34 +436,15 @@ This tool is designed for **AI-driven document editing**:
 
 ## Using with Claude Code
 
-### First-Time Setup in a New Session
+Once you've completed the [installation](#installation) and [authentication setup](#authentication-setup), the `gdoc` command is available in all Claude Code sessions.
 
-If you're starting a fresh Claude Code session and the `gdoc` command isn't available:
+If starting a brand new machine or Claude Code session where `gdoc` isn't installed:
 
 ```bash
-# Quick install (recommended)
 pipx install git+https://github.com/defaye/gdoc-editor.git
-
-# Or with pip
-pip install git+https://github.com/defaye/gdoc-editor.git
-
-# Verify it works
-gdoc --help
 ```
 
-### Authentication in New Sessions
-
-Set the environment variable for your service account key:
-
-```bash
-# If you have a .env file in your project
-export GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json
-
-# Or add to your project's .env file
-echo 'GOOGLE_SERVICE_ACCOUNT_KEY_FILE=/path/to/your-key.json' >> .env
-```
-
-**Remember**: Documents must be shared with your service account email (found in the key JSON as `client_email`).
+That's it! Authentication is already configured in your shell config, so it just works.
 
 ### Workflow Tips
 
