@@ -171,6 +171,63 @@ Good:
 
 The `editor.py` module handles this automatically via `execute_operations()`.
 
+## CRITICAL: Working with Indices - Common Mistakes
+
+### ❌ **WRONG: Sequential inserts with stale indices**
+```bash
+# This WILL break - each insert shifts indices!
+gdoc-cli insert <doc-id> 100 "Part 1"
+gdoc-cli insert <doc-id> 108 "Part 2"  # Wrong! Index 108 moved when we inserted at 100
+```
+
+### ❌ **WRONG: Building sentences piecemeal**
+```bash
+# This is fragile and error-prone
+gdoc-cli insert <doc-id> 1 "This text is "
+gdoc-cli insert <doc-id> 14 "bold" --bold  # Index 14 is now wrong!
+gdoc-cli insert <doc-id> 18 " and more"
+```
+
+### ✅ **RIGHT: Complete paragraphs in one operation**
+```bash
+# Insert complete, self-contained blocks
+gdoc-cli insert <doc-id> 1 "This is a complete paragraph.\n"
+gdoc-cli insert <doc-id> 1 "Another complete paragraph.\n"  # Pushes first one down
+```
+
+### ✅ **RIGHT: Build document from bottom to top**
+```bash
+# Insert at index 1 repeatedly - each insertion pushes previous content down
+gdoc-cli insert <doc-id> 1 "Closing paragraph.\n"
+gdoc-cli insert <doc-id> 1 "Middle paragraph.\n"
+gdoc-cli insert <doc-id> 1 "Opening paragraph.\n"
+# Result: Opening, Middle, Closing (in correct order)
+```
+
+### ✅ **RIGHT: Use batch operations for complex documents**
+Create `ops.json`:
+```json
+[
+  {"type": "insert", "startIndex": 1, "text": "Paragraph 1\n"},
+  {"type": "insert", "startIndex": 1, "text": "Paragraph 2\n"}
+]
+```
+Then: `gdoc-cli batch <doc-id> ops.json`
+
+### ✅ **RIGHT: Read after each edit if you need fresh indices**
+```bash
+CURRENT_END=$(gdoc-cli read <doc-id> | jq -r '.content[-1].endIndex')
+gdoc-cli insert <doc-id> $CURRENT_END "New text\n"
+```
+
+### 🎯 **BEST PRACTICES**
+
+1. **Keep it simple**: One paragraph = one insert operation
+2. **Avoid mid-sentence formatting changes**: Use complete styled paragraphs
+3. **For complex documents**: Use batch operations with a JSON file
+4. **Never guess indices**: Always read the document first
+5. **Building incrementally?**: Insert at index 1 and build bottom-to-top
+
 ## Typical Claude Workflow
 
 ### Pattern 1: Update a Section
