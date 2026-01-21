@@ -31,6 +31,11 @@ ENV/
 token.json
 credentials.json
 
+# Service account key files
+*-[a-f0-9]*.json
+gdoc-editor-*.json
+service-account-*.json
+
 # Environment variables
 .env
 
