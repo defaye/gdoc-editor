@@ -334,12 +334,11 @@ gdoc-cli insert <document-id> <index> "Section Title\n" --style HEADING_2
 # \n becomes a real newline
 gdoc-cli insert <doc-id> 100 "Line 1\nLine 2\n"
 
-# \t becomes a real tab
-gdoc-cli insert <doc-id> 100 "Name:\tJohn Doe\n"
-
 # \\ becomes a single backslash
 gdoc-cli insert <doc-id> 100 "Path: C:\\Users\\Name\n"
 ```
+
+**Note**: Google Docs does not visually render tab characters (`\t`), so tab escape sequences are not supported.
 
 Preview without executing:
 ```bash

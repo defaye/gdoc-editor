@@ -354,7 +354,7 @@ When you (Claude Code) work with this tool:
 2. **Use the `content` array**: It's already structured for you (headings vs paragraphs)
 3. **Mind the indices**: They're 0-based UTF-16 code units, starting at 1
 4. **Preserve newlines**: Every paragraph should end with `\n`
-5. **Escape sequences work**: Use `\n` for newlines, `\t` for tabs - they're automatically converted
+5. **Escape sequences work**: Use `\n` for newlines, `\\` for backslashes - they're automatically converted
 6. **Batch when possible**: More efficient and atomic
 7. **Use dry-run**: Preview changes with `--dry-run` flag when uncertain
 8. **The `find` command is your friend**: Quick way to locate sections
@@ -366,8 +366,9 @@ When you (Claude Code) work with this tool:
   - Supports NORMAL_TEXT, HEADING_1-6, TITLE, SUBTITLE
   - Auto-applies NORMAL_TEXT for text ending with `\n` to prevent style inheritance
   - Fixes issue where inserted text inherits incorrect heading formats
-  - Added automatic escape sequence decoding (`\n`, `\t`, `\r`, `\\`)
+  - Added automatic escape sequence decoding (`\n`, `\\`)
   - Fixes issue where literal `\n` appeared in documents instead of newlines
+  - Note: Google Docs does not visually render tabs, so `\t` is not supported
 
 - **v0.3.0** (2026-01-21): Renamed command to `gdoc-cli`
   - Changed command from `gdoc` to `gdoc-cli` for clarity

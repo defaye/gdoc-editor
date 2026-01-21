@@ -133,17 +133,17 @@ def handle_read(args, service):
 
 def decode_escape_sequences(text: str) -> str:
     """
-    Decode common escape sequences like \\n, \\t, etc.
+    Decode escape sequences like \\n and \\\\.
 
     Handles the case where bash passes literal backslash-n instead of a newline.
     Processes escape sequences in the correct order to handle escaped backslashes.
+
+    Note: Google Docs does not visually render tab characters, so \\t is not supported.
     """
     # Process escape sequences in order (escaped backslashes first)
     replacements = [
         ('\\\\', '\x00'),  # Temporarily replace \\\\ with null byte
         ('\\n', '\n'),     # Replace \\n with newline
-        ('\\t', '\t'),     # Replace \\t with tab
-        ('\\r', '\r'),     # Replace \\r with carriage return
         ('\x00', '\\'),    # Restore single backslashes
     ]
     for old, new in replacements:
