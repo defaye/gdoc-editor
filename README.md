@@ -28,6 +28,7 @@ gdoc-cli --version
 
 - **Read**: Fetch document content with structural information (headings, paragraphs, indices)
 - **Insert**: Insert text at a specific character index
+- **Insert Markdown** (NEW!): Insert formatted text using intuitive markdown syntax in one fast operation
 - **Delete**: Delete a range of text by start/end indices
 - **Replace**: Replace a range with new text
 - **Find**: Locate sections by heading text
@@ -404,6 +405,87 @@ Preview without executing:
 gdoc-cli insert <document-id> <index> "Text" --dry-run
 ```
 
+### Insert markdown (Recommended!)
+
+The fastest and most intuitive way to insert formatted content. Write natural markdown syntax and insert it in a single operation:
+
+```bash
+gdoc-cli insert-md <document-id> <index> "# My Heading
+
+This is a paragraph with **bold** and *italic* text.
+
+## Features
+
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
+
+### Numbered Lists
+
+1. First item
+2. Second item
+3. Third item
+"
+```
+
+**Why use markdown?**
+- **Fast**: Single API call instead of multiple operations
+- **Intuitive**: Write natural markdown syntax
+- **Complete**: Supports headings, lists, and inline formatting
+- **Simple**: No index calculations or style flags needed
+
+**Load markdown from a file**:
+```bash
+gdoc-cli insert-md <document-id> <index> --file content.md
+```
+
+**Supported markdown features**:
+- Headings: `#`, `##`, `###` (H1, H2, H3)
+- Bullet lists: `- item` or `* item`
+- Numbered lists: `1. item`, `2. item`
+- Bold: `**text**` (coming soon)
+- Italic: `*text*` (coming soon)
+- Code: `` `text` `` (coming soon)
+
+**Example: Creating a complete document**:
+```bash
+# Create a full document with one command
+gdoc-cli insert-md 1ABC...xyz 1 "# Project Overview
+
+This document outlines our Q1 goals and milestones.
+
+## Goals
+
+- Increase user engagement
+- Improve performance
+- Launch new features
+
+## Timeline
+
+1. Planning phase (Week 1-2)
+2. Development (Week 3-8)
+3. Testing and launch (Week 9-10)
+
+## Next Steps
+
+Review this document and provide feedback by EOW.
+"
+```
+
+**Revision safety**: Works just like regular insert
+```bash
+# With safety check (default)
+gdoc-cli insert-md <document-id> <index> "# Content"
+
+# Skip safety check
+gdoc-cli insert-md <document-id> <index> "# Content" --force
+
+# Preview without executing
+gdoc-cli insert-md <document-id> <index> "# Content" --dry-run
+```
+
+**Pro tip**: For complex documents, use markdown instead of manual insert operations. It's faster, clearer, and less error-prone.
+
 ### Delete text
 
 Delete a range of text:
@@ -567,10 +649,11 @@ That's it! Authentication is already configured in your shell config, so it just
 When using this tool with Claude Code:
 
 1. **Always read first**: Use `gdoc-cli read` to get the current document structure before making edits
-2. **Find sections**: Use `gdoc-cli find` to locate specific sections by heading
-3. **Calculate indices**: Use the structured JSON output to determine exact indices for edits
-4. **Test with dry-run**: Use `--dry-run` to preview operations before executing
-5. **Batch when possible**: Group multiple edits into a single batch operation for atomicity
+2. **Prefer markdown**: Use `insert-md` for formatted content - it's faster and more intuitive than multiple insert operations
+3. **Find sections**: Use `gdoc-cli find` to locate specific sections by heading
+4. **Calculate indices**: Use the structured JSON output to determine exact indices for edits
+5. **Test with dry-run**: Use `--dry-run` to preview operations before executing
+6. **Batch when possible**: For operations not supported by markdown, group multiple edits into a single batch operation
 
 ### Example: Updating a Section
 

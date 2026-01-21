@@ -16,6 +16,7 @@ from gdoc import __version__
 from gdoc.auth import get_docs_service, revoke_credentials, AuthenticationError
 from gdoc.reader import read_document, find_section
 from gdoc.editor import insert_text, delete_text, replace_text, batch_edit
+from gdoc.markdown import insert_markdown
 
 
 def setup_parser() -> argparse.ArgumentParser:
@@ -172,6 +173,19 @@ More info:
     find_parser.add_argument("document_id", help="Google Doc ID or full URL")
     find_parser.add_argument("heading", help="Heading text to search for (partial match supported)")
 
+    # Insert markdown command
+    insert_md_parser = subparsers.add_parser(
+        "insert-md",
+        help="Insert markdown-formatted text (FAST!)",
+        description="Insert markdown text with automatic formatting. Supports headings, bold, italic, lists, and code. Much faster than multiple insert operations."
+    )
+    insert_md_parser.add_argument("document_id", help="Google Doc ID or full URL")
+    insert_md_parser.add_argument("index", type=int, help="Character index where text should be inserted (0-based)")
+    insert_md_parser.add_argument("text", nargs='?', help="Markdown text to insert (or use --file)")
+    insert_md_parser.add_argument("--file", help="Path to markdown file to insert")
+    insert_md_parser.add_argument("--force", action="store_true", help="Skip revision safety check")
+    insert_md_parser.add_argument("--dry-run", action="store_true", help="Preview the operation without executing")
+
     # Batch command
     batch_parser = subparsers.add_parser(
         "batch",
@@ -314,6 +328,43 @@ def handle_insert(args, service):
         print(f"\n✓ Inserted text at index {args.index}{style_msg}{bullet_msg}{format_msg}")
 
 
+def handle_insert_md(args, service):
+    """Handle the insert-md command."""
+    doc_id = extract_document_id(args.document_id)
+
+    # Get markdown text from argument or file
+    if args.file:
+        try:
+            with open(args.file, 'r') as f:
+                markdown_text = f.read()
+        except Exception as e:
+            print(f"Error reading file: {e}", file=sys.stderr)
+            sys.exit(1)
+    elif args.text:
+        # Decode escape sequences in the text
+        markdown_text = decode_escape_sequences(args.text)
+    else:
+        print("Error: Either provide text or --file argument", file=sys.stderr)
+        sys.exit(1)
+
+    # Get revision ID for safety check (unless --force is used)
+    revision_id = None
+    if not args.force and not args.dry_run:
+        revision_id = get_revision_id(service, doc_id)
+
+    result = insert_markdown(
+        service,
+        doc_id,
+        args.index,
+        markdown_text,
+        required_revision_id=revision_id,
+        dry_run=args.dry_run
+    )
+    print(json.dumps(result, indent=2))
+    if not args.dry_run:
+        print(f"\n✓ Inserted markdown at index {args.index}")
+
+
 def handle_delete(args, service):
     """Handle the delete command."""
     doc_id = extract_document_id(args.document_id)
@@ -429,6 +480,8 @@ def main():
             handle_read(args, service)
         elif args.command == "insert":
             handle_insert(args, service)
+        elif args.command == "insert-md":
+            handle_insert_md(args, service)
         elif args.command == "delete":
             handle_delete(args, service)
         elif args.command == "replace":
