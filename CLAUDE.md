@@ -13,7 +13,7 @@ This document provides context for Claude (or other AI assistants) working with 
 
 ## Quick Setup for New Sessions
 
-If starting a new Claude Code session where `gdoc` isn't available:
+If starting a new Claude Code session where `gdoc-cli` isn't available:
 
 ```bash
 pipx install git+https://github.com/defaye/gdoc-editor.git
@@ -123,7 +123,7 @@ The `editor.py` module handles this automatically via `execute_operations()`.
 
 ```bash
 # 1. Read the document
-gdoc read <doc-id> > doc.json
+gdoc-cli read <doc-id> > doc.json
 
 # 2. Parse JSON to find the section
 # (Claude uses the structured content array)
@@ -131,19 +131,19 @@ gdoc read <doc-id> > doc.json
 # 3. Calculate the new content and indices
 
 # 4. Replace the section content
-gdoc replace <doc-id> <start> <end> "New content"
+gdoc-cli replace <doc-id> <start> <end> "New content"
 ```
 
 ### Pattern 2: Insert After a Heading
 
 ```bash
 # 1. Find the heading
-gdoc find <doc-id> "Background" > section.json
+gdoc-cli find <doc-id> "Background" > section.json
 
 # 2. Extract contentStartIndex from the result
 
 # 3. Insert at that index
-gdoc insert <doc-id> <contentStartIndex> "New paragraph\n"
+gdoc-cli insert <doc-id> <contentStartIndex> "New paragraph\n"
 ```
 
 ### Pattern 3: Batch Edits
@@ -162,7 +162,7 @@ When making multiple changes:
   {"type": "delete", "startIndex": 50, "endIndex": 75}
 ]
 
-gdoc batch <doc-id> operations.json
+gdoc-cli batch <doc-id> operations.json
 ```
 
 ## Common Pitfalls
@@ -173,10 +173,10 @@ Each paragraph in Google Docs ends with `\n`. If you want to insert a new paragr
 
 ```bash
 # Wrong - will merge with next paragraph
-gdoc insert <doc-id> 100 "New paragraph"
+gdoc-cli insert <doc-id> 100 "New paragraph"
 
 # Right - maintains document structure
-gdoc insert <doc-id> 100 "New paragraph\n"
+gdoc-cli insert <doc-id> 100 "New paragraph\n"
 ```
 
 ### 2. Using Stale Indices
@@ -261,7 +261,7 @@ This provides full read/write access. For read-only operations, you could use:
 1. Check environment variables are set
 2. Verify Google Cloud project has Docs API enabled
 3. Ensure user is added as test user in OAuth consent screen
-4. Try `gdoc logout` and re-authenticate
+4. Try `gdoc-cli logout` and re-authenticate
 
 ## Performance Considerations
 
@@ -300,7 +300,7 @@ Here's a typical usage flow:
 
 ```bash
 # Read the document
-$ gdoc read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
+$ gdoc-cli read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
 {
   "documentId": "13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI",
   "title": "Technical RFC",
@@ -312,7 +312,7 @@ $ gdoc read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
 }
 
 # Find a specific section
-$ gdoc find 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI "Background"
+$ gdoc-cli find 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI "Background"
 {
   "heading": "Background\n",
   "headingStartIndex": 1,
@@ -322,7 +322,7 @@ $ gdoc find 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI "Background"
 }
 
 # Replace the section content
-$ gdoc replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 12 30 "Updated content.\n"
+$ gdoc-cli replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 12 30 "Updated content.\n"
 {
   "replies": [...]
 }
@@ -342,6 +342,11 @@ When you (Claude Code) work with this tool:
 7. **The `find` command is your friend**: Quick way to locate sections
 
 ## Version History
+
+- **v0.3.0** (2026-01-21): Renamed command to `gdoc-cli`
+  - Changed command from `gdoc` to `gdoc-cli` for clarity
+  - Updated all documentation and examples
+  - Breaking change: existing users need to use `gdoc-cli` instead of `gdoc`
 
 - **v0.2.0** (2026-01-21): Added service account authentication
   - Service account authentication via JSON key file

@@ -20,28 +20,28 @@ from gdoc.editor import insert_text, delete_text, replace_text, batch_edit
 def setup_parser() -> argparse.ArgumentParser:
     """Set up the command-line argument parser."""
     parser = argparse.ArgumentParser(
-        prog="gdoc",
+        prog="gdoc-cli",
         description="CLI tool for programmatic Google Docs editing",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Read a document (outputs JSON)
-  gdoc read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
+  gdoc-cli read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
 
   # Insert text at index 100
-  gdoc insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New text"
+  gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New text"
 
   # Delete text from index 50 to 60
-  gdoc delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 60
+  gdoc-cli delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 60
 
   # Replace text from index 20 to 30
-  gdoc replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 20 30 "Replacement text"
+  gdoc-cli replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 20 30 "Replacement text"
 
   # Find a section by heading
-  gdoc find 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI "Background"
+  gdoc-cli find 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI "Background"
 
   # Revoke stored credentials
-  gdoc logout
+  gdoc-cli logout
         """,
     )
 

@@ -16,7 +16,7 @@ echo 'export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json
 source ~/.zshrc
 
 # 4. Use it
-gdoc read <document-id>
+gdoc-cli read <document-id>
 ```
 
 **Prerequisites**: You need a Google Cloud service account key file. See [Authentication Setup](#authentication-setup) below for how to create one.
@@ -48,10 +48,10 @@ brew install pipx  # macOS
 pipx install git+https://github.com/defaye/gdoc-editor.git
 
 # Verify installation
-gdoc --help
+gdoc-cli --help
 ```
 
-The `gdoc` command is now available globally in any terminal or Claude Code session.
+The `gdoc-cli` command is now available globally in any terminal or Claude Code session.
 
 **Updating:**
 ```bash
@@ -72,7 +72,7 @@ pipx uninstall gdoc-editor
 pip install git+https://github.com/defaye/gdoc-editor.git
 
 # Verify installation
-gdoc --help
+gdoc-cli --help
 ```
 
 ### Method 3: Development Installation
@@ -203,7 +203,7 @@ This tool supports two authentication methods.
    - Give it "Editor" access
    - Click "Send"
 
-Done! The `gdoc` command is now available everywhere, authenticated and ready to use.
+Done! The `gdoc-cli` command is now available everywhere, authenticated and ready to use.
 
 ### Method 2: OAuth 2.0 (User Credentials)
 
@@ -261,15 +261,15 @@ Done! The `gdoc` command is now available everywhere, authenticated and ready to
 Get the full document structure as JSON:
 
 ```bash
-gdoc read <document-id>
+gdoc-cli read <document-id>
 ```
 
 You can use either the document ID or the full URL:
 
 ```bash
-gdoc read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
+gdoc-cli read 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI
 # or
-gdoc read https://docs.google.com/document/d/13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI/edit
+gdoc-cli read https://docs.google.com/document/d/13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI/edit
 ```
 
 Output format (JSON):
@@ -299,7 +299,7 @@ Output format (JSON):
 
 Get plain text only:
 ```bash
-gdoc read <document-id> --format text
+gdoc-cli read <document-id> --format text
 ```
 
 ### Insert text
@@ -307,17 +307,17 @@ gdoc read <document-id> --format text
 Insert text at a specific index:
 
 ```bash
-gdoc insert <document-id> <index> "Text to insert"
+gdoc-cli insert <document-id> <index> "Text to insert"
 ```
 
 Example:
 ```bash
-gdoc insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New paragraph here.\n"
+gdoc-cli insert 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 100 "New paragraph here.\n"
 ```
 
 Preview without executing:
 ```bash
-gdoc insert <document-id> <index> "Text" --dry-run
+gdoc-cli insert <document-id> <index> "Text" --dry-run
 ```
 
 ### Delete text
@@ -325,12 +325,12 @@ gdoc insert <document-id> <index> "Text" --dry-run
 Delete a range of text:
 
 ```bash
-gdoc delete <document-id> <start-index> <end-index>
+gdoc-cli delete <document-id> <start-index> <end-index>
 ```
 
 Example:
 ```bash
-gdoc delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 75
+gdoc-cli delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 75
 ```
 
 ### Replace text
@@ -338,12 +338,12 @@ gdoc delete 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 50 75
 Replace a range with new text:
 
 ```bash
-gdoc replace <document-id> <start-index> <end-index> "New text"
+gdoc-cli replace <document-id> <start-index> <end-index> "New text"
 ```
 
 Example:
 ```bash
-gdoc replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 20 45 "Updated content.\n"
+gdoc-cli replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 20 45 "Updated content.\n"
 ```
 
 ### Find sections
@@ -351,7 +351,7 @@ gdoc replace 13WmtU1Q_rE55S8JcBFbq-VG2ySzjg1lrSOjSLjpJoEI 20 45 "Updated content
 Locate a section by heading text:
 
 ```bash
-gdoc find <document-id> "Section Heading"
+gdoc-cli find <document-id> "Section Heading"
 ```
 
 Returns the heading location and section content range:
@@ -370,7 +370,7 @@ Returns the heading location and section content range:
 Execute multiple operations from a JSON file:
 
 ```bash
-gdoc batch <document-id> operations.json
+gdoc-cli batch <document-id> operations.json
 ```
 
 Example `operations.json`:
@@ -402,7 +402,7 @@ Operations are automatically ordered by descending index to prevent offset issue
 Revoke and delete stored credentials:
 
 ```bash
-gdoc logout
+gdoc-cli logout
 ```
 
 ## How Indices Work
@@ -436,9 +436,9 @@ This tool is designed for **AI-driven document editing**:
 
 ## Using with Claude Code
 
-Once you've completed the [installation](#installation) and [authentication setup](#authentication-setup), the `gdoc` command is available in all Claude Code sessions.
+Once you've completed the [installation](#installation) and [authentication setup](#authentication-setup), the `gdoc-cli` command is available in all Claude Code sessions.
 
-If starting a brand new machine or Claude Code session where `gdoc` isn't installed:
+If starting a brand new machine or Claude Code session where `gdoc-cli` isn't installed:
 
 ```bash
 pipx install git+https://github.com/defaye/gdoc-editor.git
@@ -450,8 +450,8 @@ That's it! Authentication is already configured in your shell config, so it just
 
 When using this tool with Claude Code:
 
-1. **Always read first**: Use `gdoc read` to get the current document structure before making edits
-2. **Find sections**: Use `gdoc find` to locate specific sections by heading
+1. **Always read first**: Use `gdoc-cli read` to get the current document structure before making edits
+2. **Find sections**: Use `gdoc-cli find` to locate specific sections by heading
 3. **Calculate indices**: Use the structured JSON output to determine exact indices for edits
 4. **Test with dry-run**: Use `--dry-run` to preview operations before executing
 5. **Batch when possible**: Group multiple edits into a single batch operation for atomicity
@@ -460,13 +460,13 @@ When using this tool with Claude Code:
 
 ```bash
 # 1. Read the document to get structure
-gdoc read <doc-id> | jq . > doc.json
+gdoc-cli read <doc-id> | jq . > doc.json
 
 # 2. Find the section you want to update
-gdoc find <doc-id> "Background"
+gdoc-cli find <doc-id> "Background"
 
 # 3. Replace the section content
-gdoc replace <doc-id> 335 433 "New background text.\n"
+gdoc-cli replace <doc-id> 335 433 "New background text.\n"
 ```
 
 ## Troubleshooting
@@ -527,7 +527,7 @@ Service Accounts are NOT under "APIs & Services" > "Credentials".
 
 ### Index out of range
 
-- Use `gdoc read` to check the current document length (`totalLength`)
+- Use `gdoc-cli read` to check the current document length (`totalLength`)
 - Remember indices are 0-based UTF-16 code units
 - Account for surrogate pairs (emoji, special characters)
 
