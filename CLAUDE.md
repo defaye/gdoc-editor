@@ -355,11 +355,22 @@ When you (Claude Code) work with this tool:
 3. **Mind the indices**: They're 0-based UTF-16 code units, starting at 1
 4. **Preserve newlines**: Every paragraph should end with `\n`
 5. **Escape sequences work**: Use `\n` for newlines, `\\` for backslashes - they're automatically converted
-6. **Batch when possible**: More efficient and atomic
-7. **Use dry-run**: Preview changes with `--dry-run` flag when uncertain
-8. **The `find` command is your friend**: Quick way to locate sections
+6. **Use bullets for lists**: Add `--bullet BULLET_DISC_CIRCLE_SQUARE` for proper bullet formatting (not spaces+hyphens!)
+7. **Revision safety is automatic**: Edits will fail if document was modified since last read (use `--force` to override)
+8. **Batch when possible**: More efficient and atomic
+9. **Use dry-run**: Preview changes with `--dry-run` flag when uncertain
+10. **The `find` command is your friend**: Quick way to locate sections
 
 ## Version History
+
+- **v0.5.0** (2026-01-21): Added bullet/numbered list support and revision safety checks
+  - New `--bullet` option for insert command with 10 preset styles
+  - Proper bullet and numbered list formatting (fixes "spaces with hyphens" issue)
+  - Automatic revision safety checks prevent editing stale documents
+  - New `--force` flag to bypass revision checks when needed
+  - Operations fail with clear error if document was modified since last read
+
+- **v0.4.0** (2026-01-21): Added paragraph styling support and escape sequence handling
 
 - **v0.4.0** (2026-01-21): Added paragraph styling support and escape sequence handling
   - New `--style` option for insert command

@@ -70,6 +70,15 @@ Examples:
         choices=["NORMAL_TEXT", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6", "TITLE", "SUBTITLE"],
         help="Paragraph style (default: NORMAL_TEXT if text ends with newline)"
     )
+    insert_parser.add_argument(
+        "--bullet",
+        choices=["BULLET_DISC_CIRCLE_SQUARE", "BULLET_DIAMONDX_ARROW3D_SQUARE", "BULLET_CHECKBOX",
+                 "BULLET_ARROW_DIAMOND_DISC", "NUMBERED_DECIMAL_ALPHA_ROMAN", "NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS",
+                 "NUMBERED_DECIMAL_NESTED", "NUMBERED_UPPERALPHA_ALPHA_ROMAN", "NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL",
+                 "NUMBERED_ZERODECIMAL_ALPHA_ROMAN"],
+        help="Bullet list preset (converts paragraph(s) to bulleted list)"
+    )
+    insert_parser.add_argument("--force", action="store_true", help="Skip revision safety check (allow editing modified documents)")
     insert_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
 
     # Delete command
@@ -77,6 +86,7 @@ Examples:
     delete_parser.add_argument("document_id", help="Google Doc ID or full URL")
     delete_parser.add_argument("start_index", type=int, help="Start of range (inclusive)")
     delete_parser.add_argument("end_index", type=int, help="End of range (exclusive)")
+    delete_parser.add_argument("--force", action="store_true", help="Skip revision safety check (allow editing modified documents)")
     delete_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
 
     # Replace command
@@ -85,6 +95,7 @@ Examples:
     replace_parser.add_argument("start_index", type=int, help="Start of range (inclusive)")
     replace_parser.add_argument("end_index", type=int, help="End of range (exclusive)")
     replace_parser.add_argument("text", help="Replacement text")
+    replace_parser.add_argument("--force", action="store_true", help="Skip revision safety check (allow editing modified documents)")
     replace_parser.add_argument("--dry-run", action="store_true", help="Preview without executing")
 
     # Find command
@@ -131,6 +142,26 @@ def handle_read(args, service):
     print(output)
 
 
+def get_revision_id(service, document_id: str) -> str:
+    """
+    Get the current revision ID of a document.
+
+    Args:
+        service: Authenticated Google Docs API service
+        document_id: The ID of the document
+
+    Returns:
+        The document's current revision ID
+    """
+    try:
+        doc = service.documents().get(documentId=document_id, fields="revisionId").execute()
+        return doc.get("revisionId")
+    except Exception as e:
+        # If we can't get revision ID, return None (will skip safety check)
+        print(f"Warning: Could not get revision ID: {e}", file=sys.stderr)
+        return None
+
+
 def decode_escape_sequences(text: str) -> str:
     """
     Decode escape sequences like \\n and \\\\.
@@ -163,24 +194,45 @@ def handle_insert(args, service):
     if paragraph_style is None and text.endswith('\n'):
         paragraph_style = 'NORMAL_TEXT'
 
+    # Get revision ID for safety check (unless --force is used)
+    revision_id = None
+    if not args.force and not args.dry_run:
+        revision_id = get_revision_id(service, doc_id)
+
     result = insert_text(
         service,
         doc_id,
         args.index,
         text,
         paragraph_style=paragraph_style,
+        bullet_preset=args.bullet,
+        required_revision_id=revision_id,
         dry_run=args.dry_run
     )
     print(json.dumps(result, indent=2))
     if not args.dry_run:
         style_msg = f" with style {paragraph_style}" if paragraph_style else ""
-        print(f"\n✓ Inserted text at index {args.index}{style_msg}")
+        bullet_msg = f" as {args.bullet} list" if args.bullet else ""
+        print(f"\n✓ Inserted text at index {args.index}{style_msg}{bullet_msg}")
 
 
 def handle_delete(args, service):
     """Handle the delete command."""
     doc_id = extract_document_id(args.document_id)
-    result = delete_text(service, doc_id, args.start_index, args.end_index, dry_run=args.dry_run)
+
+    # Get revision ID for safety check (unless --force is used)
+    revision_id = None
+    if not args.force and not args.dry_run:
+        revision_id = get_revision_id(service, doc_id)
+
+    result = delete_text(
+        service,
+        doc_id,
+        args.start_index,
+        args.end_index,
+        required_revision_id=revision_id,
+        dry_run=args.dry_run
+    )
     print(json.dumps(result, indent=2))
     if not args.dry_run:
         print(f"\n✓ Deleted range [{args.start_index}, {args.end_index})")
@@ -193,8 +245,19 @@ def handle_replace(args, service):
     # Decode escape sequences (e.g., convert literal \\n to actual newline)
     text = decode_escape_sequences(args.text)
 
+    # Get revision ID for safety check (unless --force is used)
+    revision_id = None
+    if not args.force and not args.dry_run:
+        revision_id = get_revision_id(service, doc_id)
+
     result = replace_text(
-        service, doc_id, args.start_index, args.end_index, text, dry_run=args.dry_run
+        service,
+        doc_id,
+        args.start_index,
+        args.end_index,
+        text,
+        required_revision_id=revision_id,
+        dry_run=args.dry_run
     )
     print(json.dumps(result, indent=2))
     if not args.dry_run:

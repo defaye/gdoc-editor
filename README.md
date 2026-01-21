@@ -329,6 +329,28 @@ gdoc-cli insert <document-id> <index> "Section Title\n" --style HEADING_2
 
 **Important**: If you insert text ending with `\n` without specifying `--style`, it will automatically be styled as `NORMAL_TEXT` to prevent inheriting incorrect heading formats.
 
+**Bullet and numbered lists**: Create properly formatted lists with `--bullet`:
+
+```bash
+# Insert as bulleted list
+gdoc-cli insert <document-id> <index> "Item 1\nItem 2\nItem 3\n" --bullet BULLET_DISC_CIRCLE_SQUARE
+
+# Insert as numbered list
+gdoc-cli insert <document-id> <index> "Step 1\nStep 2\nStep 3\n" --bullet NUMBERED_DECIMAL_ALPHA_ROMAN
+
+# Available bullet presets:
+# - BULLET_DISC_CIRCLE_SQUARE (• ○ ■)
+# - BULLET_DIAMONDX_ARROW3D_SQUARE (◆ ✖ ➔)
+# - BULLET_CHECKBOX (☐ checkboxes)
+# - BULLET_ARROW_DIAMOND_DISC (➔ ◆ •)
+# - NUMBERED_DECIMAL_ALPHA_ROMAN (1. a. i.)
+# - NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS (1) a) i))
+# - NUMBERED_DECIMAL_NESTED (1. 1.1. 1.1.1.)
+# - NUMBERED_UPPERALPHA_ALPHA_ROMAN (A. a. i.)
+# - NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL (I. A. 1.)
+# - NUMBERED_ZERODECIMAL_ALPHA_ROMAN (01. a. i.)
+```
+
 **Escape sequences**: The tool automatically converts escape sequences in your text:
 ```bash
 # \n becomes a real newline
@@ -389,6 +411,38 @@ Returns the heading location and section content range:
   "contentEndIndex": 450
 }
 ```
+
+### Revision safety checks
+
+By default, all edit operations (insert, delete, replace) include a safety check to prevent overwriting changes made by others:
+
+```bash
+# This will fail if the document was modified since you last read it
+gdoc-cli insert <document-id> 100 "My text\n"
+
+# Error: "Document was modified since last read. Use --force to bypass this check, or re-read the document."
+```
+
+**How it works**:
+1. Before editing, the tool reads the document's current revision ID
+2. The edit request includes this revision ID as a safety check
+3. If someone else modified the document in the meantime, Google Docs API rejects the request
+4. You must re-read the document to get updated indices before editing
+
+**Bypass the check** (use with caution):
+```bash
+# Skip revision check - allows editing even if document changed
+gdoc-cli insert <document-id> 100 "My text\n" --force
+gdoc-cli delete <document-id> 50 75 --force
+gdoc-cli replace <document-id> 20 45 "New text\n" --force
+```
+
+**When to use `--force`**:
+- You're the only one editing the document
+- You're okay with potential conflicts
+- You're making non-critical changes
+
+**Best practice**: Always re-read the document after failed edits to get the current state and updated indices.
 
 ### Batch operations
 

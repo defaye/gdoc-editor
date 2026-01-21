@@ -53,6 +53,8 @@ def insert_text(
     index: int,
     text: str,
     paragraph_style: Optional[str] = None,
+    bullet_preset: Optional[str] = None,
+    required_revision_id: Optional[str] = None,
     dry_run: bool = False
 ) -> Dict[str, Any]:
     """
@@ -64,14 +66,20 @@ def insert_text(
         index: The index where text should be inserted (0-based, UTF-16 code units)
         text: The text to insert
         paragraph_style: Optional paragraph style (e.g., 'NORMAL_TEXT', 'HEADING_1', 'HEADING_2')
+        bullet_preset: Optional bullet list preset (e.g., 'BULLET_DISC_CIRCLE_SQUARE', 'NUMBERED_DECIMAL')
+        required_revision_id: Optional revision ID for safety - operation fails if document changed
         dry_run: If True, return the request without executing it
 
     Returns:
         API response or request preview if dry_run=True
 
     Raises:
-        Exception: If the operation fails
+        Exception: If the operation fails or revision check fails
     """
+    # Calculate the range of inserted text
+    text_length = len(text.encode('utf-16-le')) // 2  # UTF-16 code units
+    end_index = index + text_length
+
     # Build requests list
     requests = []
 
@@ -86,10 +94,6 @@ def insert_text(
 
     # Second request: apply paragraph style if specified
     if paragraph_style:
-        # Calculate the range of inserted text
-        text_length = len(text.encode('utf-16-le')) // 2  # UTF-16 code units
-        end_index = index + text_length
-
         style_request = {
             "updateParagraphStyle": {
                 "range": {
@@ -104,24 +108,52 @@ def insert_text(
         }
         requests.append(style_request)
 
+    # Third request: apply bullet formatting if specified
+    if bullet_preset:
+        bullet_request = {
+            "createParagraphBullets": {
+                "range": {
+                    "startIndex": index,
+                    "endIndex": end_index,
+                },
+                "bulletPreset": bullet_preset
+            }
+        }
+        requests.append(bullet_request)
+
     if dry_run:
         return {
             "dry_run": True,
             "requests": requests,
+            "writeControl": {"requiredRevisionId": required_revision_id} if required_revision_id else None,
         }
 
     # Execute batch update
     try:
+        body = {"requests": requests}
+        if required_revision_id:
+            body["writeControl"] = {"requiredRevisionId": required_revision_id}
+
         response = service.documents().batchUpdate(
             documentId=document_id,
-            body={"requests": requests}
+            body=body
         ).execute()
         return response
     except Exception as e:
+        error_msg = str(e)
+        if "requiredRevisionId" in error_msg or "document has been modified" in error_msg.lower():
+            raise Exception(f"Document was modified since last read. Use --force to bypass this check, or re-read the document. Error: {e}")
         raise Exception(f"Insert operation failed: {e}")
 
 
-def delete_text(service, document_id: str, start_index: int, end_index: int, dry_run: bool = False) -> Dict[str, Any]:
+def delete_text(
+    service,
+    document_id: str,
+    start_index: int,
+    end_index: int,
+    required_revision_id: Optional[str] = None,
+    dry_run: bool = False
+) -> Dict[str, Any]:
     """
     Delete a range of text from the document.
 
@@ -130,13 +162,14 @@ def delete_text(service, document_id: str, start_index: int, end_index: int, dry
         document_id: The ID of the document to edit
         start_index: Start of range to delete (inclusive, 0-based)
         end_index: End of range to delete (exclusive, 0-based)
+        required_revision_id: Optional revision ID for safety - operation fails if document changed
         dry_run: If True, return the request without executing it
 
     Returns:
         API response or request preview if dry_run=True
 
     Raises:
-        Exception: If the operation fails
+        Exception: If the operation fails or revision check fails
     """
     if end_index <= start_index:
         raise ValueError(f"end_index ({end_index}) must be greater than start_index ({start_index})")
@@ -148,9 +181,10 @@ def delete_text(service, document_id: str, start_index: int, end_index: int, dry
             "dry_run": True,
             "operation": str(operation),
             "request": operation.to_request(),
+            "writeControl": {"requiredRevisionId": required_revision_id} if required_revision_id else None,
         }
 
-    return execute_operations(service, document_id, [operation])
+    return execute_operations(service, document_id, [operation], required_revision_id=required_revision_id)
 
 
 def replace_text(
@@ -159,6 +193,7 @@ def replace_text(
     start_index: int,
     end_index: int,
     text: str,
+    required_revision_id: Optional[str] = None,
     dry_run: bool = False
 ) -> Dict[str, Any]:
     """
@@ -172,13 +207,14 @@ def replace_text(
         start_index: Start of range to replace (inclusive, 0-based)
         end_index: End of range to replace (exclusive, 0-based)
         text: The new text to insert
+        required_revision_id: Optional revision ID for safety - operation fails if document changed
         dry_run: If True, return the request without executing it
 
     Returns:
         API response or request preview if dry_run=True
 
     Raises:
-        Exception: If the operation fails
+        Exception: If the operation fails or revision check fails
     """
     if end_index <= start_index:
         raise ValueError(f"end_index ({end_index}) must be greater than start_index ({start_index})")
@@ -195,12 +231,18 @@ def replace_text(
             "dry_run": True,
             "operations": [str(op) for op in operations],
             "requests": [op.to_request() for op in operations],
+            "writeControl": {"requiredRevisionId": required_revision_id} if required_revision_id else None,
         }
 
-    return execute_operations(service, document_id, operations)
+    return execute_operations(service, document_id, operations, required_revision_id=required_revision_id)
 
 
-def execute_operations(service, document_id: str, operations: List[EditOperation]) -> Dict[str, Any]:
+def execute_operations(
+    service,
+    document_id: str,
+    operations: List[EditOperation],
+    required_revision_id: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Execute a batch of edit operations.
 
@@ -211,12 +253,13 @@ def execute_operations(service, document_id: str, operations: List[EditOperation
         service: Authenticated Google Docs API service
         document_id: The ID of the document to edit
         operations: List of EditOperation objects
+        required_revision_id: Optional revision ID for safety - operation fails if document changed
 
     Returns:
         API response from batchUpdate
 
     Raises:
-        Exception: If the batch operation fails
+        Exception: If the batch operation fails or revision check fails
     """
     if not operations:
         return {"message": "No operations to execute"}
@@ -233,12 +276,19 @@ def execute_operations(service, document_id: str, operations: List[EditOperation
 
     # Execute batch update
     try:
+        body = {"requests": requests}
+        if required_revision_id:
+            body["writeControl"] = {"requiredRevisionId": required_revision_id}
+
         response = service.documents().batchUpdate(
             documentId=document_id,
-            body={"requests": requests}
+            body=body
         ).execute()
         return response
     except Exception as e:
+        error_msg = str(e)
+        if "requiredRevisionId" in error_msg or "document has been modified" in error_msg.lower():
+            raise Exception(f"Document was modified since last read. Use --force to bypass this check, or re-read the document. Error: {e}")
         raise Exception(f"Batch update failed: {e}")
 
 
