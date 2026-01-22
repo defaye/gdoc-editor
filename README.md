@@ -1,5 +1,17 @@
 # gdoc-editor
 
+> **⚠️ DEPRECATED:** This project is deprecated in favour of the [Google Docs MCP Server](https://github.com/a-bonus/google-docs-mcp).
+>
+> The MCP server provides superior functionality with direct integration into Claude Code, including:
+> - Real-time document editing with full formatting support
+> - Google Sheets and Drive operations
+> - Comment management and collaboration features
+> - No manual CLI commands needed - works directly within Claude conversations
+>
+> This project remains available as a reference implementation and learning resource for working with the Google Docs API.
+
+---
+
 CLI tool for programmatic Google Docs editing via the Google Docs API. Designed for AI-driven document management, enabling precise read and edit operations on Google Docs.
 
 ## Quick Start
