@@ -212,8 +212,9 @@ This tool supports two authentication methods.
 
    Find your service account email:
    ```bash
-   grep client_email ~/.config/gdoc-editor-key.json
-   # Output: "client_email": "gdoc-editor-bot@project-id.iam.gserviceaccount.com"
+   gdoc-cli whoami
+   # Output: gdoc-editor-bot@project-id.iam.gserviceaccount.com
+   # ℹ️  Share documents with this email (Editor access) to use gdoc-cli
    ```
 
    Share your Google Docs with this email:
@@ -607,6 +608,23 @@ Revoke and delete stored credentials:
 ```bash
 gdoc-cli logout
 ```
+
+### Get service account email
+
+Display the service account email that needs Editor access to documents:
+
+```bash
+gdoc-cli whoami
+```
+
+Example output:
+```
+gdoc-editor-bot@your-project-id.iam.gserviceaccount.com
+
+ℹ️  Share documents with this email (Editor access) to use gdoc-cli
+```
+
+This is useful when you need to quickly find the email address to share documents with, without having to manually inspect the key file.
 
 ## How Indices Work
 
