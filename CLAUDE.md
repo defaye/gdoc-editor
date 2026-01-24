@@ -1,6 +1,6 @@
 # CLAUDE.md - Context for AI Sessions
 
-> **⚠️ PROJECT DEPRECATED:** This CLI tool has been superseded by the [Google Docs MCP Server](https://github.com/a-bonus/google-docs-mcp), which provides direct integration with Claude Code and more comprehensive functionality. This project is preserved as a reference implementation.
+> **Note:** This project was developed as an exploration of the Google Docs API and is still in active development. For production use with Claude Code, consider the [Google Docs MCP Server](https://github.com/a-bonus/google-docs-mcp) which provides more comprehensive functionality. This tool is useful for learning and understanding low-level Google Docs API operations.
 
 This document provides context for Claude (or other AI assistants) working with gdoc-editor. It captures key implementation decisions, API quirks, and recommended usage patterns.
 
@@ -18,7 +18,7 @@ This document provides context for Claude (or other AI assistants) working with 
 If starting a new Claude Code session where `gdoc-cli` isn't available:
 
 ```bash
-pipx install git+https://github.com/defaye/gdoc-editor.git
+pipx install git+https://github.com/pixielabs/gdoc-editor.git
 ```
 
 **Authentication**: Should already be configured in the user's shell config (`~/.zshrc` or `~/.bashrc`) with:

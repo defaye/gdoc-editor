@@ -1,24 +1,16 @@
 # gdoc-editor
 
-> **⚠️ DEPRECATED:** This project is deprecated in favour of the [Google Docs MCP Server](https://github.com/a-bonus/google-docs-mcp).
->
-> The MCP server provides superior functionality with direct integration into Claude Code, including:
-> - Real-time document editing with full formatting support
-> - Google Sheets and Drive operations
-> - Comment management and collaboration features
-> - No manual CLI commands needed - works directly within Claude conversations
->
-> This project remains available as a reference implementation and learning resource for working with the Google Docs API.
-
----
-
 CLI tool for programmatic Google Docs editing via the Google Docs API. Designed for AI-driven document management, enabling precise read and edit operations on Google Docs.
+
+> **Note:** This project was developed as an exploration of the Google Docs API and is still in active development. If you're looking for production-ready Google Docs integration with Claude Code, consider the [Google Docs MCP Server](https://github.com/a-bonus/google-docs-mcp) which provides more comprehensive functionality and direct integration within Claude conversations.
+>
+> This tool remains useful as a learning resource and for understanding low-level Google Docs API operations.
 
 ## Quick Start
 
 ```bash
 # 1. Install the tool
-pipx install git+https://github.com/defaye/gdoc-editor.git
+pipx install git+https://github.com/pixielabs/gdoc-editor.git
 
 # 2. Add authentication to your shell config (one-time setup)
 echo 'export GOOGLE_SERVICE_ACCOUNT_KEY_FILE="$HOME/.config/gdoc-editor-key.json"' >> ~/.zshrc
