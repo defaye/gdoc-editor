@@ -71,6 +71,9 @@ Examples:
   # Preview changes without executing
   gdoc-cli insert <doc-id> 100 "Text\\n" --dry-run
 
+  # Get service account email for document sharing
+  gdoc-cli whoami
+
   # Revoke stored credentials
   gdoc-cli logout
 
@@ -201,6 +204,13 @@ More info:
         "logout",
         help="Revoke and delete stored credentials",
         description="Remove stored OAuth credentials (service account keys are not affected)"
+    )
+
+    # Whoami command
+    subparsers.add_parser(
+        "whoami",
+        help="Show service account email for document sharing",
+        description="Display the service account email address that needs Editor access to documents"
     )
 
     return parser
@@ -447,6 +457,36 @@ def handle_logout(args):
     revoke_credentials()
 
 
+def handle_whoami(args):
+    """Handle the whoami command."""
+    import os
+    import json
+
+    key_file = os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY_FILE')
+
+    if not key_file:
+        print("No service account configured (GOOGLE_SERVICE_ACCOUNT_KEY_FILE not set)", file=sys.stderr)
+        print("\nUsing OAuth authentication - no email needed, documents are accessed as your user.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        with open(key_file, 'r') as f:
+            key_data = json.load(f)
+            email = key_data.get('client_email')
+            if email:
+                print(email)
+                print(f"\nℹ️  Share documents with this email (Editor access) to use gdoc-cli", file=sys.stderr)
+            else:
+                print("Error: client_email not found in service account key file", file=sys.stderr)
+                sys.exit(1)
+    except FileNotFoundError:
+        print(f"Error: Service account key file not found: {key_file}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: Invalid JSON in service account key file: {key_file}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     """Main CLI entry point."""
     # Load environment variables from .env file
@@ -459,9 +499,13 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    # Handle logout separately (doesn't need API service)
+    # Handle commands that don't need API service
     if args.command == "logout":
         handle_logout(args)
+        return
+
+    if args.command == "whoami":
+        handle_whoami(args)
         return
 
     # Get authenticated service
